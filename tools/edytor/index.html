@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Edytor osób</title>
+<style>
+body { font-family: "Times New Roman", serif; max-width: 920px; margin: 8px auto; padding: 0 8px; background: #fff; color: #000; }
+fieldset { margin: 12px 0; }
+legend { font-weight: bold; }
+input[type=text], input[type=email], input[type=url], textarea { width: 100%; box-sizing: border-box; font: inherit; }
+td, th { vertical-align: top; }
+table.form { width: 100%; }
+table.form th { text-align: left; white-space: nowrap; width: 1%; padding-right: 8px; }
+.pairs td:last-child { width: 1%; white-space: nowrap; }
+.hint { font-size: smaller; color: #555; }
+.ok { color: #080; }
+.err { color: #c00; }
+tr.sel { background: #ffffcc; }
+#msg { font-weight: bold; min-height: 1.2em; }
+pre { background: #eee; padding: 6px; white-space: pre-wrap; }
+.serp { font-family: Arial, sans-serif; border: 1px dashed #999; padding: 8px; }
+.serp .u { color: #202124; font-size: 12px; }
+.serp .t { color: #1a0dab; font-size: 18px; }
+.serp .d { color: #4d5156; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<h1>Edytor osób</h1>
+<p class="hint">Narzędzie lokalne – działa tylko na tym komputerze i nie jest publikowane na stronie. Usunięte pliki trafiają do <code>.kosz/</code>.</p>
+
+<fieldset>
+<legend>Zbiór danych</legend>
+<label><input type="radio" name="zbior" value="test"> <b>Testowy</b> – losowe osoby</label><br>
+<label><input type="radio" name="zbior" value="prawdziwy"> <b>Prawdziwy</b> – publikowany na stronie</label>
+<p class="hint" id="zbior-info"></p>
+<p id="losuj-box">Dodaj losowe osoby na koniec listy:
+<input type="number" id="ile" value="5" min="1" max="200" size="4">
+<button type="button" id="losuj">Dodaj losowe</button></p>
+</fieldset>
+
+<fieldset>
+<legend>Szybkie dodawanie – wklej tekst</legend>
+<p class="hint">Wklej dane jednej lub kilku osób (kolejne oddziel linią <code>---</code>) albo wczytaj plik .txt.
+Format: <a href="/edytor/szablon.txt" target="_blank">szablon.txt</a>.</p>
+<textarea id="wklej" rows="8" placeholder="Imię i nazwisko: Jan Kowalski&#10;Miejscowość: Bydgoszcz&#10;Kim jest: student&#10;Atrybuty:&#10;- Rocznik: 2005&#10;Linki:&#10;- Instagram: https://instagram.com/..."></textarea>
+<p>
+<input type="file" id="wklejPlik" accept=".txt,text/plain">
+<button type="button" id="przetworz"><b>Przetwórz tekst</b></button>
+<button type="button" id="wklejWyczysc">Wyczyść</button>
+</p>
+<div id="wynik"></div>
+<details>
+<summary>Jak przygotować taki tekst z pomocą AI (ChatGPT, Claude, Gemini)</summary>
+<p>Skopiuj poniższe polecenie, wklej je do czatu z AI, a pod nim wklej informacje o osobie: tekst ze strony ze statystykami,
+CV, notatkę, opis z Instagrama. Odpowiedź AI wklej w pole powyżej i kliknij „Przetwórz tekst”. Zawsze przeczytaj wynik przed zapisaniem.</p>
+<p><button type="button" id="kopiujPrompt">Kopiuj polecenie</button></p>
+<pre id="prompt">Przerób informacje o osobie (lub osobach) podane na końcu na tekst w DOKŁADNIE takim formacie:
+
+Imię i nazwisko: …
+Miejscowość: … (mianownik, np. Bydgoszcz)
+Skąd: z … (dopełniacz, np. z Bydgoszczy, ze Swarzędza)
+Kim jest: … (krótko, np. student informatyki, zawodnik koszykówki)
+Podsumowanie: … (1 zdanie, 50–160 znaków, zawiera imię, nazwisko i „z [miasto]”)
+Atrybuty:
+- Nazwa: wartość
+Linki:
+- Nazwa serwisu: pełny adres https://…
+Opis:
+1–3 krótkie akapity oddzielone pustą linią.
+Pytania:
+P: Kim jest [imię nazwisko] z [miasta]?
+O: …
+P: …
+O: …
+
+Zasady:
+- Używaj wyłącznie faktów z podanych informacji. Niczego nie dopisuj ani nie zgaduj.
+- Jeśli czegoś brakuje, pomiń całą linię lub sekcję.
+- Atrybuty: krótkie pary, np. Rocznik, Wzrost, Pozycja, Klub, Szkoła / uczelnia, Języki, Zainteresowania.
+- Linki: tylko pełne adresy URL, które występują w podanych informacjach.
+- Pytania: 2–3 pary, odpowiedzi 1–2 zdania.
+- Kilka osób oddziel linią zawierającą tylko: ---
+- Zwróć tylko gotowy tekst w tym formacie, bez komentarzy i bez formatowania Markdown.
+
+Informacje:
+</pre>
+</details>
+</fieldset>
+
+<p>
+<button type="button" id="nowa">+ Nowa osoba</button>
+<button type="button" id="buduj">Zbuduj podgląd</button>
+<a href="/" target="_blank">Otwórz podgląd strony</a>
+</p>
+<p id="msg"></p>
+<pre id="log" hidden></pre>
+
+<table border="1" cellpadding="4" cellspacing="0" id="lista">
+<caption align="top">Osób: <span id="liczba">0</span></caption>
+<thead><tr><th>Nr</th><th>Imię i nazwisko</th><th>Miejscowość</th><th>Dok.</th><th>Akcje</th></tr></thead>
+<tbody></tbody>
+</table>
+
+<hr>
+
+<form id="f" autocomplete="off">
+<h2 id="naglowek">Nowa osoba</h2>
+
+<fieldset>
+<legend>Podstawowe dane</legend>
+<table class="form">
+<tr><th>Nr (id)</th><td><span id="nr">nadany przy zapisie</span></td></tr>
+<tr><th><label for="name">Imię i nazwisko *</label></th><td><input type="text" id="name" required></td></tr>
+<tr><th><label for="city">Miejscowość</label></th><td><input type="text" id="city" placeholder="np. Bydgoszcz"></td></tr>
+<tr><th><label for="cityFrom">Skąd (forma „z …”)</label></th><td><input type="text" id="cityFrom" placeholder="np. z Bydgoszczy, ze Swarzędza">
+<div class="hint">Używane w tytule i nagłówku: „Jan Kowalski z Bydgoszczy”.</div></td></tr>
+<tr><th><label for="role">Kim jest</label></th><td><input type="text" id="role" placeholder="np. student, zawodnik koszykówki, programista"></td></tr>
+<tr><th><label for="summary">Zdanie podsumowujące</label></th><td><textarea id="summary" rows="2"></textarea>
+<div class="hint">Pierwsze zdanie strony – to je najczęściej cytuje Google. <span id="summaryLen"></span>
+<a href="#" id="propozycja">wstaw propozycję</a></div></td></tr>
+<tr><th><label for="bio">Opis</label></th><td><textarea id="bio" rows="5"></textarea>
+<div class="hint">Akapity oddzielaj pustą linią.</div></td></tr>
+<tr><th><label for="email">E-mail</label></th><td><input type="email" id="email" placeholder="opcjonalnie – będzie publiczny"></td></tr>
+</table>
+</fieldset>
+
+<fieldset>
+<legend>Atrybuty (tabela „Dane”)</legend>
+<table class="pairs" width="100%"><tbody id="attrs"></tbody></table>
+<button type="button" id="addAttr">+ dodaj atrybut</button>
+<datalist id="attrKeys">
+<option value="Rocznik"><option value="Wzrost"><option value="Szkoła / uczelnia"><option value="Kierunek"><option value="Klub">
+<option value="Pozycja"><option value="Numer na koszulce"><option value="Praca"><option value="Języki"><option value="Zainteresowania">
+<option value="Osiągnięcia"><option value="Prawo jazdy">
+</datalist>
+</fieldset>
+
+<fieldset>
+<legend>Linki do profili</legend>
+<p class="hint">Najważniejsza część dla Google: po tych linkach sprawdza, że to prawdziwa osoba. Wklejaj tylko prawdziwe profile tej osoby
+i najlepiej dodaj w nich link zwrotny do jej podstrony.</p>
+<table class="pairs" width="100%"><tbody id="links"></tbody></table>
+<button type="button" id="addLink">+ dodaj link</button>
+<datalist id="linkKeys">
+<option value="Instagram"><option value="Facebook"><option value="LinkedIn"><option value="GitHub"><option value="TikTok">
+<option value="YouTube"><option value="X"><option value="Strona szkoły"><option value="Strona klubu"><option value="Statystyki">
+</datalist>
+</fieldset>
+
+<fieldset>
+<legend>Pytania i odpowiedzi</legend>
+<p class="hint">Puste = generowane automatycznie („Kim jest …?”, „Skąd jest …?”).</p>
+<table class="pairs" width="100%"><tbody id="faq"></tbody></table>
+<button type="button" id="addFaq">+ dodaj pytanie</button>
+</fieldset>
+
+<p><button type="submit"><b>Zapisz osobę</b></button> <span class="hint">(Ctrl+S)</span></p>
+</form>
+
+<fieldset id="pliki">
+<legend>Zdjęcie i dokumenty</legend>
+<p class="hint" id="pliki-info">Najpierw zapisz osobę – pliki dostają jej numer jako prefiks.</p>
+<div id="pliki-box" hidden>
+<h3>Zdjęcie</h3>
+<p id="foto"></p>
+<p><input type="file" id="fotoFile" accept=".jpg,.jpeg,.png,.webp"></p>
+
+<h3>Dokumenty</h3>
+<ul id="docs"></ul>
+<table class="form">
+<tr><th><label for="docFile">Plik</label></th><td><input type="file" id="docFile" accept=".pdf,application/pdf"></td></tr>
+<tr><th><label for="docName">Nazwa</label></th><td><input type="text" id="docName" placeholder="np. dokument badania zab">
+<div class="hint">Zapisze się jako: <code id="docTarget">–</code></div></td></tr>
+</table>
+<p><button type="button" id="docSend">Wyślij dokument</button></p>
+</div>
+</fieldset>
+
+<fieldset>
+<legend>Jak to zobaczy Google</legend>
+<div class="serp">
+<div class="u" id="serpUrl"></div>
+<div class="t" id="serpTitle"></div>
+<div class="d" id="serpDesc"></div>
+</div>
+<h3>Kontrola jakości profilu</h3>
+<ul id="checks"></ul>
+</fieldset>
+
+<script src="/edytor/parser.js"></script>
+<script>
+"use strict";
+var $ = function (s) { return document.querySelector(s); };
+var people = [], site = {}, current = null, dirty = false;
+var zbior = "test";
+try { zbior = localStorage.getItem("zbior") || "test"; } catch (e) {}
+function withZbior(url) { return url + (url.indexOf("?") >= 0 ? "&" : "?") + "zbior=" + zbior; }
+var ZBIOR_INFO = {
+  test: "Plik data/test-people.json, dokumenty w sources-test/. Strona z tego zbioru ma blokadę „noindex” i nie trafia do internetu.",
+  prawdziwy: "Plik data/people.json, dokumenty w sources/. To jest publikowane na stronie i widoczne dla Google."
+};
+
+var PL = { "ą": "a", "ć": "c", "ę": "e", "ł": "l", "ń": "n", "ó": "o", "ś": "s", "ź": "z", "ż": "z" };
+function norm(s) {
+  return String(s || "").toLowerCase().replace(/[ąćęłńóśźż]/g, function (c) { return PL[c]; })
+    .normalize("NFD").replace(/[̀-ͯ]/g, "");
+}
+function slugify(s) { return norm(s).replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""); }
+function safeName(s) { return norm(s).replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "").slice(0, 80); }
+function kb(n) { return n < 1024 ? n + " B" : Math.ceil(n / 1024) + " KB"; }
+function ext(file) { var m = /\.([a-z0-9]+)$/i.exec(file.name); return m ? m[1].toLowerCase() : ""; }
+
+function api(method, url, body, raw) {
+  return fetch(withZbior(url), {
+    method: method,
+    body: raw ? body : body && JSON.stringify(body),
+    headers: raw ? {} : { "content-type": "application/json" }
+  }).then(function (r) {
+    return r.json().catch(function () { return {}; }).then(function (data) {
+      if (!r.ok) throw new Error(data.error || data.log || r.statusText);
+      return data;
+    });
+  });
+}
+function msg(text, ok) { var m = $("#msg"); m.textContent = text; m.className = ok ? "ok" : "err"; }
+function fail(e) { msg("Błąd: " + e.message, false); }
+
+// --- lista osób ---------------------------------------------------------
+
+function load(selectId) {
+  return api("GET", "/api/people").then(function (list) {
+    people = list;
+    renderList();
+    if (selectId) edit(people.find(function (p) { return p.id === selectId; }) || null);
+  }).catch(fail);
+}
+
+function renderList() {
+  var tb = $("#lista tbody");
+  tb.innerHTML = "";
+  people.forEach(function (p) {
+    var tr = document.createElement("tr");
+    if (current && current.id === p.id) tr.className = "sel";
+    tr.innerHTML = '<td align="right"></td><td></td><td></td><td align="right"></td>' +
+      '<td><a href="#">edytuj</a> &middot; <a href="#">usuń</a></td>';
+    tr.cells[0].textContent = p.id;
+    tr.cells[1].textContent = p.name;
+    tr.cells[2].textContent = p.city || "";
+    tr.cells[3].textContent = p.documents.length;
+    var a = tr.querySelectorAll("a");
+    a[0].onclick = function (e) { e.preventDefault(); if (confirmLeave()) edit(p); };
+    a[1].onclick = function (e) {
+      e.preventDefault();
+      if (!confirm("Usunąć " + p.name + " (nr " + p.id + ") razem ze zdjęciem i dokumentami?\nPliki trafią do folderu .kosz.")) return;
+      api("DELETE", "/api/people/" + p.id).then(function () {
+        if (current && current.id === p.id) edit(null);
+        msg("Usunięto: " + p.name, true);
+        load();
+      }).catch(fail);
+    };
+    tb.appendChild(tr);
+  });
+  $("#liczba").textContent = people.length;
+}
+
+// --- formularz ----------------------------------------------------------
+
+var FIELDS = ["name", "city", "cityFrom", "role", "summary", "email"];
+
+function addPair(tbodyId, a, b, phA, phB, listId) {
+  var tr = document.createElement("tr");
+  tr.innerHTML = '<td width="35%"><input type="text"></td><td><input type="text"></td><td><button type="button">usuń</button></td>';
+  var inputs = tr.querySelectorAll("input");
+  inputs[0].value = a || ""; inputs[0].placeholder = phA;
+  inputs[1].value = b || ""; inputs[1].placeholder = phB;
+  if (listId) inputs[0].setAttribute("list", listId);
+  if (tbodyId === "links") inputs[1].type = "url";
+  tr.querySelector("button").onclick = function () { tr.remove(); changed(); };
+  $("#" + tbodyId).appendChild(tr);
+  return inputs[0];
+}
+function readPairs(tbodyId) {
+  return Array.prototype.map.call($("#" + tbodyId).rows, function (r) {
+    var i = r.querySelectorAll("input");
+    return [i[0].value.trim(), i[1].value.trim()];
+  }).filter(function (p) { return p[0] && p[1]; });
+}
+
+function edit(p) {
+  current = p;
+  dirty = false;
+  fill(p);
+  renderFiles();
+  renderList();
+}
+
+// wpisuje dane osoby do formularza (bez zmiany tego, która osoba jest edytowana)
+function fill(p) {
+  FIELDS.forEach(function (k) { $("#" + k).value = (p && p[k]) || ""; });
+  $("#bio").value = ((p && p.bio) || []).join("\n\n");
+  $("#nr").textContent = current ? current.id : "nadany przy zapisie";
+  $("#naglowek").textContent = current ? "Edycja: " + current.name : "Nowa osoba";
+  ["attrs", "links", "faq"].forEach(function (id) { $("#" + id).innerHTML = ""; });
+  Object.entries((p && p.attributes) || {}).forEach(function (e) { addPair("attrs", e[0], e[1], "nazwa, np. Rocznik", "wartość", "attrKeys"); });
+  Object.entries((p && p.links) || {}).forEach(function (e) { addPair("links", e[0], e[1], "serwis", "https://…", "linkKeys"); });
+  ((p && p.faq) || []).forEach(function (f) { addPair("faq", f.q, f.a, "pytanie", "odpowiedź"); });
+  hints();
+}
+
+function collect() {
+  var d = { id: current ? current.id : undefined };
+  FIELDS.forEach(function (k) { d[k] = $("#" + k).value.trim(); });
+  d.bio = $("#bio").value.split(/\n\s*\n/).map(function (s) { return s.replace(/\s+/g, " ").trim(); }).filter(Boolean);
+  d.attributes = Object.fromEntries(readPairs("attrs"));
+  d.links = Object.fromEntries(readPairs("links"));
+  d.faq = readPairs("faq").map(function (p) { return { q: p[0], a: p[1] }; });
+  return d;
+}
+
+function save() {
+  var d = collect();
+  if (!d.name) { msg("Wpisz imię i nazwisko.", false); $("#name").focus(); return; }
+  var bad = Object.entries(d.links).filter(function (e) { return !/^https?:\/\/\S+\.\S+/.test(e[1]); });
+  if (bad.length) { msg("Nieprawidłowy link: " + bad[0][0] + " – musi zaczynać się od https://", false); return; }
+  api("POST", "/api/people", d).then(function (saved) {
+    dirty = false;
+    msg("Zapisano: " + saved.name + " (nr " + saved.id + "). Kliknij „Zbuduj podgląd”, żeby zobaczyć stronę.", true);
+    return load(saved.id);
+  }).catch(fail);
+}
+
+function changed() { dirty = true; hints(); }
+function confirmLeave() { return !dirty || confirm("Masz niezapisane zmiany. Porzucić je?"); }
+
+// --- pliki --------------------------------------------------------------
+
+function renderFiles() {
+  $("#pliki-box").hidden = !current;
+  $("#pliki-info").hidden = !!current;
+  if (!current) return;
+  var foto = $("#foto");
+  foto.innerHTML = "";
+  if (current.photo) {
+    var img = document.createElement("img");
+    img.src = withZbior("/edytor/public/" + current.photo + "?t=" + Date.now());
+    img.width = 120; img.border = 1; img.alt = current.name;
+    var del = document.createElement("a");
+    del.href = "#"; del.textContent = "usuń zdjęcie";
+    del.onclick = function (e) {
+      e.preventDefault();
+      api("DELETE", "/api/photo/" + current.id).then(function () { msg("Usunięto zdjęcie.", true); load(current.id); }).catch(fail);
+    };
+    foto.append(img, document.createElement("br"), del);
+  } else {
+    foto.textContent = "Brak zdjęcia.";
+  }
+  var ul = $("#docs");
+  ul.innerHTML = "";
+  if (!current.documents.length) ul.innerHTML = "<li><i>brak dokumentów</i></li>";
+  current.documents.forEach(function (d) {
+    var li = document.createElement("li");
+    li.innerHTML = '<a target="_blank"></a> [<span></span>] <a href="#">usuń</a>';
+    var a = li.querySelectorAll("a");
+    a[0].href = withZbior("/edytor/pliki/" + encodeURIComponent(d.file));
+    a[0].textContent = d.file;
+    li.querySelector("span").textContent = kb(d.size);
+    a[1].onclick = function (e) {
+      e.preventDefault();
+      if (!confirm("Usunąć " + d.file + "? Plik trafi do .kosz.")) return;
+      api("DELETE", "/api/files/" + encodeURIComponent(d.file)).then(function () { msg("Usunięto " + d.file, true); load(current.id); }).catch(fail);
+    };
+    ul.appendChild(li);
+  });
+  docTarget();
+}
+
+function docTarget() {
+  var f = $("#docFile").files[0];
+  var name = safeName($("#docName").value);
+  $("#docTarget").textContent = current && f && name ? current.id + "_" + name + "." + ext(f) : "–";
+}
+
+$("#docFile").onchange = function () {
+  var f = this.files[0];
+  if (f && !$("#docName").value) $("#docName").value = f.name.replace(/\.[^.]+$/, "").replace(/^\d+_/, "").replace(/[_-]+/g, " ");
+  docTarget();
+};
+$("#docName").oninput = docTarget;
+$("#docSend").onclick = function () {
+  var f = $("#docFile").files[0];
+  var name = $("#docName").value.trim();
+  if (!f) return msg("Wybierz plik.", false);
+  if (!name) return msg("Wpisz nazwę dokumentu.", false);
+  if (dirty && !confirm("Masz niezapisane zmiany w formularzu – wysłanie pliku ich nie zapisze. Kontynuować?")) return;
+  api("POST", "/api/files/" + current.id + "?name=" + encodeURIComponent(name) + "&ext=" + ext(f), f, true).then(function (r) {
+    msg("Dodano dokument: " + r.file, true);
+    $("#docFile").value = ""; $("#docName").value = "";
+    return load(current.id);
+  }).catch(fail);
+};
+
+$("#fotoFile").onchange = function () {
+  var f = this.files[0];
+  if (!f) return;
+  api("POST", "/api/photo/" + current.id + "?ext=" + ext(f), f, true).then(function () {
+    msg("Zapisano zdjęcie.", true);
+    $("#fotoFile").value = "";
+    return load(current.id);
+  }).catch(fail);
+};
+
+// --- podgląd Google i kontrola jakości ----------------------------------
+
+function hints() {
+  var d = collect();
+  var from = d.cityFrom || (d.city ? "(" + d.city + ")" : "");
+  var summary = d.summary || (d.name + (d.role ? " – " + d.role : "") + " " + from + ".").replace(/\s+\./, ".");
+  var host = String(site.url || "").replace(/^https?:\/\//, "").replace(/\/$/, "");
+  $("#serpUrl").textContent = host + " › osoby › " + slugify(d.name + " " + (d.city || ""));
+  $("#serpTitle").textContent = (d.name || "Imię Nazwisko") + " " + from + (d.role ? " – " + d.role : "");
+  $("#serpDesc").textContent = summary;
+  $("#summaryLen").textContent = "Długość: " + d.summary.length + " znaków.";
+
+  var cityInSummary = d.cityFrom ? summary.indexOf(d.cityFrom) >= 0 : d.city && summary.indexOf(d.city) >= 0;
+  var checks = [
+    [!!d.name, "Imię i nazwisko"],
+    [!!(d.city && d.cityFrom), "Miejscowość i forma „z …” (do frazy imię + miasto)"],
+    [d.summary.length >= 50 && d.summary.length <= 160, "Zdanie podsumowujące ma 50–160 znaków"],
+    [!!(d.name && summary.indexOf(d.name) >= 0 && cityInSummary), "Podsumowanie zawiera imię, nazwisko i miasto"],
+    [d.bio.length > 0, "Opis (co najmniej 1 akapit)"],
+    [Object.keys(d.attributes).length >= 3, "Co najmniej 3 atrybuty"],
+    [Object.keys(d.links).length >= 1, "Co najmniej 1 link do prawdziwego profilu (najważniejsze!)"],
+    [!!(current && current.photo), "Zdjęcie"]
+  ];
+  var ul = $("#checks");
+  ul.innerHTML = "";
+  checks.forEach(function (c) {
+    var li = document.createElement("li");
+    li.className = c[0] ? "ok" : "err";
+    li.textContent = (c[0] ? "[OK] " : "[ – ] ") + c[1];
+    ul.appendChild(li);
+  });
+}
+
+$("#propozycja").onclick = function (e) {
+  e.preventDefault();
+  var d = collect();
+  if (!d.name || !d.role || !d.cityFrom) return msg("Do propozycji potrzebne są: imię i nazwisko, „kim jest” i forma „z …”.", false);
+  $("#summary").value = d.name + " to " + d.role + " " + d.cityFrom + ".";
+  changed();
+};
+
+// --- start --------------------------------------------------------------
+
+$("#f").addEventListener("input", changed);
+$("#f").onsubmit = function (e) { e.preventDefault(); save(); };
+$("#addAttr").onclick = function () { addPair("attrs", "", "", "nazwa, np. Rocznik", "wartość", "attrKeys").focus(); };
+$("#addLink").onclick = function () { addPair("links", "", "", "serwis", "https://…", "linkKeys").focus(); };
+$("#addFaq").onclick = function () { addPair("faq", "", "", "pytanie", "odpowiedź").focus(); };
+$("#nowa").onclick = function () { if (confirmLeave()) { edit(null); $("#name").focus(); } };
+$("#buduj").onclick = function () {
+  var btn = this;
+  btn.disabled = true;
+  api("POST", "/api/build").then(function (r) { msg("Podgląd zbudowany – otwórz „Otwórz podgląd strony”.", true); return r; })
+    .catch(function (e) { fail(e); return { log: e.message }; })
+    .then(function (r) { $("#log").hidden = false; $("#log").textContent = r.log; btn.disabled = false; });
+};
+document.addEventListener("keydown", function (e) {
+  if ((e.ctrlKey || e.metaKey) && e.key === "s") { e.preventDefault(); save(); }
+});
+window.addEventListener("beforeunload", function (e) { if (dirty) { e.preventDefault(); e.returnValue = ""; } });
+
+// --- szybkie dodawanie z tekstu -----------------------------------------
+
+function existing(p) {
+  return people.find(function (o) { return norm(o.name) === norm(p.name) && norm(o.city) === norm(p.city); });
+}
+// dane z tekstu nadpisują tylko pola, które w tekście są
+function merge(base, p) {
+  var out = Object.assign({}, base);
+  FIELDS.forEach(function (k) { if (p[k]) out[k] = p[k]; });
+  if (p.bio.length) out.bio = p.bio;
+  if (p.faq.length) out.faq = p.faq;
+  out.attributes = Object.assign({}, base.attributes, p.attributes);
+  out.links = Object.assign({}, base.links, p.links);
+  return out;
+}
+function describe(p) {
+  var parts = [];
+  if (p.city) parts.push(p.city);
+  if (p.role) parts.push(p.role);
+  var n = Object.keys(p.attributes).length, l = Object.keys(p.links).length;
+  if (n) parts.push("atrybuty: " + n);
+  if (l) parts.push("linki: " + l);
+  if (p.bio.length) parts.push("opis");
+  if (p.faq.length) parts.push("pytania: " + p.faq.length);
+  return parts.join(", ");
+}
+
+function toForm(r) {
+  if (!confirmLeave()) return;
+  var p = r.person, old = existing(p);
+  if (old && confirm(p.name + " (" + (p.city || "bez miasta") + ") jest już na liście jako nr " + old.id + ".\nOK = uzupełnij tę osobę danymi z tekstu, Anuluj = dodaj jako nową.")) {
+    edit(old);
+    fill(merge(old, p));
+  } else {
+    edit(null);
+    fill(p);
+  }
+  dirty = true;
+  msg("Wczytano do formularza: " + p.name + (r.guessedFrom ? " (forma „" + p.cityFrom + "” zgadnięta – sprawdź)" : "") + ". Sprawdź dane i kliknij „Zapisz osobę”.", true);
+  $("#f").scrollIntoView();
+}
+
+function saveAll(results) {
+  var todo = results.filter(function (r) { return !existing(r.person); });
+  var skipped = results.length - todo.length;
+  var done = 0;
+  return todo.reduce(function (chain, r) {
+    return chain.then(function () { return api("POST", "/api/people", r.person).then(function () { done++; }); });
+  }, Promise.resolve()).then(function () {
+    msg("Dodano " + done + " osób" + (skipped ? ", pominięto " + skipped + " już istniejących" : "") + ".", true);
+    $("#wynik").innerHTML = "";
+    return load();
+  }).catch(function (e) { fail(e); load(); });
+}
+
+$("#przetworz").onclick = function () {
+  var results = parsujOsoby($("#wklej").value);
+  var box = $("#wynik");
+  box.innerHTML = "";
+  if (!results.length) return msg("Nie znalazłem żadnej osoby – tekst musi mieć linię „Imię i nazwisko: …”.", false);
+  if (results.length === 1) return toForm(results[0]);
+
+  var p = document.createElement("p");
+  p.innerHTML = "<b>Rozpoznano osób: " + results.length + "</b>";
+  var ul = document.createElement("ul");
+  results.forEach(function (r) {
+    var li = document.createElement("li");
+    var old = existing(r.person);
+    li.innerHTML = "<b></b> – <span></span> <i></i> <a href=\"#\">do formularza</a>";
+    li.querySelector("b").textContent = r.person.name;
+    li.querySelector("span").textContent = describe(r.person) || "same imię i nazwisko";
+    li.querySelector("i").textContent = old ? "(już jest: nr " + old.id + ")" : r.guessedFrom ? "(„" + r.person.cityFrom + "” zgadnięte)" : "";
+    li.querySelector("a").onclick = function (e) { e.preventDefault(); toForm(r); };
+    ul.appendChild(li);
+  });
+  var btn = document.createElement("button");
+  btn.type = "button";
+  btn.textContent = "Dodaj wszystkie nowe";
+  btn.onclick = function () { btn.disabled = true; saveAll(results); };
+  box.append(p, ul, btn);
+  msg("", true);
+};
+$("#wklejPlik").onchange = function () {
+  var f = this.files[0];
+  if (!f) return;
+  f.text().then(function (t) { $("#wklej").value = t; $("#przetworz").click(); });
+  this.value = "";
+};
+$("#wklejWyczysc").onclick = function () { $("#wklej").value = ""; $("#wynik").innerHTML = ""; };
+$("#kopiujPrompt").onclick = function () {
+  var btn = this;
+  navigator.clipboard.writeText($("#prompt").textContent).then(function () {
+    btn.textContent = "Skopiowano!";
+    setTimeout(function () { btn.textContent = "Kopiuj polecenie"; }, 1500);
+  }).catch(function () { msg("Nie udało się skopiować – zaznacz tekst polecenia ręcznie.", false); });
+};
+
+function setZbior(z) {
+  zbior = z;
+  try { localStorage.setItem("zbior", z); } catch (e) {}
+  document.querySelectorAll("input[name=zbior]").forEach(function (r) { r.checked = r.value === z; });
+  $("#zbior-info").textContent = ZBIOR_INFO[z];
+  $("#losuj-box").hidden = z !== "test";
+  document.title = "Edytor osób – zbiór " + z;
+  edit(null);
+  return load();
+}
+document.querySelectorAll("input[name=zbior]").forEach(function (r) {
+  r.onchange = function () {
+    if (confirmLeave()) setZbior(r.value);
+    else document.querySelectorAll("input[name=zbior]").forEach(function (x) { x.checked = x.value === zbior; });
+  };
+});
+$("#losuj").onclick = function () {
+  var ile = Math.max(1, Math.min(200, parseInt($("#ile").value, 10) || 1));
+  api("POST", "/api/random?ile=" + ile).then(function (r) {
+    msg("Dopisano " + r.added.length + " losowych osób (nr " + r.added[0] + "–" + r.added[r.added.length - 1] + "), razem: " + r.total + ".", true);
+    return load();
+  }).catch(fail);
+};
+
+api("GET", "/api/site").then(function (s) { site = s; return setZbior(zbior); }).catch(fail);
+</script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+Imię i nazwisko: Jan Kowalski
+Miejscowość: Bydgoszcz
+Skąd: z Bydgoszczy
+Kim jest: student informatyki i koszykarz
+Podsumowanie: Jan Kowalski to student informatyki z Bydgoszczy, zawodnik klubu Astoria Bydgoszcz.
+E-mail:
+
+Atrybuty:
+- Rocznik: 2005
+- Wzrost: 196 cm
+- Pozycja: środkowy
+- Klub: Astoria Bydgoszcz
+- Szkoła / uczelnia: Politechnika Bydgoska
+
+Linki:
+- Instagram: https://instagram.com/jan.kowalski
+- Statystyki: https://kpzkosz.com/zawodnik/jan-kowalski
+
+Opis:
+Jan Kowalski gra w koszykówkę od 2015 roku. W sezonie 2023/2024 występował w barwach Basket 2010 Kruszwica.
+
+Studiuje informatykę na Politechnice Bydgoskiej.
+
+Pytania:
+P: Kim jest Jan Kowalski z Bydgoszczy?
+O: To student informatyki i koszykarz, zawodnik Astorii Bydgoszcz.
+P: Na jakiej pozycji gra Jan Kowalski?
+O: Gra na pozycji środkowego.
+
+---
+
+Imię i nazwisko: Anna Nowak
+Miejscowość: Toruń
+Kim jest: studentka
+Atrybuty:
+- Rocznik: 2004
+- Zainteresowania: fotografia, rower

@@ -1,0 +1,8 @@
+dist/
+dist-test/
+dist-preview/
+.kosz/
+data/test-people.json
+data/people.backup.json
+sources-test/
+public-test/
