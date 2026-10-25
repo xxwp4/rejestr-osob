@@ -22,6 +22,9 @@ tr.sel { background: #ffffcc; }
 pre { background: #eee; padding: 6px; white-space: pre-wrap; }
 .serp { font-family: Arial, sans-serif; border: 1px dashed #999; padding: 8px; }
 .texdoc { border: 1px dashed #999; padding: 6px; margin: 6px 0; }
+.dialog { position: fixed; left: 50%; top: 15%; transform: translateX(-50%); z-index: 10; width: calc(100% - 32px); max-width: 520px;
+  box-sizing: border-box; background: #fff; border: 2px solid #000; box-shadow: 4px 4px 0 #808080; padding: 12px; }
+.dialog p { white-space: pre-wrap; margin: 0 0 10px; }
 textarea.tex { font-family: "Courier New", monospace; font-size: 13px; }
 .texdoc .err { white-space: pre-wrap; }
 .serp .u { color: #202124; font-size: 12px; }
@@ -114,6 +117,7 @@ Informacje:
 <button type="button" id="nowa">+ Nowa osoba</button>
 <button type="button" id="buduj">Zbuduj podgląd</button>
 <a href="/" target="_blank">Otwórz podgląd strony</a>
+<button type="button" id="wyslij" hidden><b>Wyślij na GitHub</b></button>
 </p>
 <p id="msg"></p>
 <pre id="log" hidden></pre>
@@ -220,6 +224,12 @@ Wpisz samą treść (bez <code>\documentclass</code> i <code>\usepackage</code>)
 <ul id="checks"></ul>
 </fieldset>
 
+<div class="dialog" id="dialog" role="dialog" aria-modal="true" hidden>
+<p id="dialogText"></p>
+<p id="dialogInputBox" hidden><input type="text" id="dialogInput"></p>
+<button type="button" id="dialogOk">Tak</button> <button type="button" id="dialogNo">Anuluj</button>
+</div>
+
 <script src="/edytor/parser.js"></script>
 <script>
 "use strict";
@@ -255,6 +265,36 @@ function api(method, url, body, raw) {
     });
   });
 }
+// pytanie na stronie zamiast confirm()/prompt() – niektóre przeglądarki (np. wbudowana w aplikację Claude)
+// blokują systemowe okienka i od razu odpowiadają „Anuluj”.
+// Zwraca Promise: true/false, a z { input: true } wpisany tekst albo null.
+function ask(text, opts) {
+  opts = opts || {};
+  return new Promise(function (resolve) {
+    var box = $("#dialog"), inp = $("#dialogInput"), ok = $("#dialogOk"), no = $("#dialogNo");
+    $("#dialogText").textContent = text;
+    $("#dialogInputBox").hidden = !opts.input;
+    inp.value = opts.value || "";
+    ok.textContent = opts.ok || "Tak";
+    no.textContent = opts.no || "Anuluj";
+    box.hidden = false;
+    (opts.input ? inp : ok).focus();
+    function done(v) {
+      box.hidden = true;
+      ok.onclick = no.onclick = null;
+      document.removeEventListener("keydown", key, true);
+      resolve(v);
+    }
+    function key(e) {
+      if (e.key === "Escape") { e.preventDefault(); done(opts.input ? null : false); }
+      else if (e.key === "Enter" && opts.input) { e.preventDefault(); done(inp.value); }
+    }
+    document.addEventListener("keydown", key, true);
+    ok.onclick = function () { done(opts.input ? inp.value : true); };
+    no.onclick = function () { done(opts.input ? null : false); };
+  });
+}
+
 function msg(text, ok) { var m = $("#msg"); m.textContent = text; m.className = ok ? "ok" : "err"; }
 function fail(e) { msg("Błąd: " + e.message, false); }
 
@@ -281,14 +321,16 @@ function renderList() {
     tr.cells[2].textContent = p.city || "";
     tr.cells[3].textContent = p.documents.length;
     var a = tr.querySelectorAll("a");
-    a[0].onclick = function (e) { e.preventDefault(); if (confirmLeave()) edit(p); };
+    a[0].onclick = function (e) { e.preventDefault(); confirmLeave().then(function (ok) { if (ok) edit(p); }); };
     a[1].onclick = function (e) {
       e.preventDefault();
-      if (!confirm("Usunąć " + p.name + " (nr " + p.id + ") razem ze zdjęciem i dokumentami?\nPliki trafią do folderu .kosz.")) return;
-      api("DELETE", "/api/people/" + p.id).then(function () {
-        if (current && current.id === p.id) edit(null);
-        msg("Usunięto: " + p.name, true);
-        load();
+      ask("Usunąć " + p.name + " (nr " + p.id + ") razem ze zdjęciem i dokumentami?\nPliki trafią do folderu .kosz.", { ok: "Usuń" }).then(function (ok) {
+        if (!ok) return;
+        return api("DELETE", "/api/people/" + p.id).then(function () {
+          if (current && current.id === p.id) edit(null);
+          msg("Usunięto: " + p.name, true);
+          load();
+        });
       }).catch(fail);
     };
     tb.appendChild(tr);
@@ -427,7 +469,9 @@ function save() {
 }
 
 function changed() { dirty = true; hints(); }
-function confirmLeave() { return !dirty || confirm("Masz niezapisane zmiany. Porzucić je?"); }
+function confirmLeave() {
+  return dirty ? ask("Masz niezapisane zmiany. Porzucić je?", { ok: "Porzuć zmiany" }) : Promise.resolve(true);
+}
 
 // --- pliki --------------------------------------------------------------
 
@@ -479,8 +523,10 @@ function renderFiles() {
     }
     a[1].onclick = function (e) {
       e.preventDefault();
-      if (!confirm("Usunąć " + d.file + "? Plik trafi do .kosz.")) return;
-      api("DELETE", "/api/files/" + encodeURIComponent(d.file)).then(function () { msg("Usunięto " + d.file, true); load(current.id); }).catch(fail);
+      ask("Usunąć " + d.file + "? Plik trafi do .kosz.", { ok: "Usuń" }).then(function (ok) {
+        if (!ok) return;
+        return api("DELETE", "/api/files/" + encodeURIComponent(d.file)).then(function () { msg("Usunięto " + d.file, true); load(current.id); });
+      }).catch(fail);
     };
     ul.appendChild(li);
   });
@@ -504,14 +550,17 @@ $("#docSend").onclick = function () {
   var name = $("#docName").value.trim();
   if (!f) return msg("Wybierz plik.", false);
   if (!name) return msg("Wpisz nazwę dokumentu.", false);
-  if (dirty && !confirm("Masz niezapisane zmiany w formularzu – wysłanie pliku ich nie zapisze. Kontynuować?")) return;
   var opis = $("#docOpis").value.trim();
-  api("POST", "/api/files/" + current.id + "?name=" + encodeURIComponent(name) + "&opis=" + encodeURIComponent(opis) + "&ext=" + ext(f), f, true).then(function (r) {
-    msg("Dodano dokument: " + r.file, true);
-    $("#docFile").value = ""; $("#docName").value = ""; $("#docOpis").value = "";
-    return load(current.id);
+  (dirty ? ask("Masz niezapisane zmiany w formularzu – wysłanie pliku ich nie zapisze. Kontynuować?") : Promise.resolve(true)).then(function (ok) {
+    if (!ok) return;
+    return api("POST", "/api/files/" + current.id + "?name=" + encodeURIComponent(name) + "&opis=" + encodeURIComponent(opis) + "&ext=" + ext(f), f, true).then(afterDocSent);
   }).catch(fail);
 };
+function afterDocSent(r) {
+  msg("Dodano dokument: " + r.file, true);
+  $("#docFile").value = ""; $("#docName").value = ""; $("#docOpis").value = "";
+  return load(current.id);
+}
 
 $("#fotoFile").onchange = function () {
   var f = this.files[0];
@@ -572,7 +621,25 @@ $("#addAttr").onclick = function () { addPair("attrs", "", "", "nazwa, np. Roczn
 $("#addLink").onclick = function () { addPair("links", "", "", "serwis", "https://…", "linkKeys").focus(); };
 $("#addTex").onclick = function () { addTexDoc(null).querySelector(".t").focus(); changed(); };
 $("#addFaq").onclick = function () { addPair("faq", "", "", "pytanie", "odpowiedź").focus(); };
-$("#nowa").onclick = function () { if (confirmLeave()) { edit(null); $("#name").focus(); } };
+$("#nowa").onclick = function () { confirmLeave().then(function (ok) { if (ok) { edit(null); $("#name").focus(); } }); };
+$("#wyslij").onclick = function () {
+  var btn = this;
+  (dirty ? ask("Masz niezapisane zmiany w formularzu – nie zostaną wysłane. Kontynuować?") : Promise.resolve(true))
+    .then(function (ok) {
+      return ok && ask("Wysłać zbiór „Prawdziwy” (" + people.length + " osób) na GitHub?\nStrona w internecie zaktualizuje się po ok. minucie.\n\nOpis zmian (możesz zostawić puste):",
+        { input: true, ok: "Wyślij" });
+    })
+    .then(function (opis) {
+      if (opis === false || opis === null) return;
+      btn.disabled = true;
+      msg("Wysyłam na GitHub i czekam na publikację… (do ok. 2 minut)", true);
+      return api("POST", "/api/publish" + (opis.trim() ? "?opis=" + encodeURIComponent(opis.trim()) : "")).then(function (r) {
+        msg(/Brak zmian/.test(r.log) ? "Brak zmian – na GitHubie jest już aktualna wersja." : "Wysłane i opublikowane.", true);
+        return r;
+      }).catch(function (e) { fail(e); return { log: e.message }; })
+        .then(function (r) { $("#log").hidden = false; $("#log").textContent = r.log; btn.disabled = false; });
+    });
+};
 $("#buduj").onclick = function () {
   var btn = this;
   btn.disabled = true;
@@ -614,9 +681,18 @@ function describe(p, r) {
 }
 
 function toForm(r) {
-  if (!confirmLeave()) return;
   var p = r.person, old = existing(p);
-  if (old && confirm(p.name + " (" + (p.city || "bez miasta") + ") jest już na liście jako nr " + old.id + ".\nOK = uzupełnij tę osobę danymi z tekstu, Anuluj = dodaj jako nową.")) {
+  confirmLeave().then(function (ok) {
+    if (!ok) return;
+    if (!old) return showParsed(r, null);
+    return ask(p.name + " (" + (p.city || "bez miasta") + ") jest już na liście jako nr " + old.id + ".",
+      { ok: "Uzupełnij tę osobę", no: "Dodaj jako nową" }).then(function (update) { showParsed(r, update ? old : null); });
+  });
+}
+
+function showParsed(r, old) {
+  var p = r.person;
+  if (old) {
     edit(old);
     fill(merge(old, p));
   } else {
@@ -711,14 +787,18 @@ function setZbior(z) {
   document.querySelectorAll("input[name=zbior]").forEach(function (r) { r.checked = r.value === z; });
   $("#zbior-info").textContent = ZBIOR_INFO[z];
   $("#losuj-box").hidden = z !== "test";
+  $("#wyslij").hidden = z !== "prawdziwy";
   document.title = "Edytor osób – zbiór " + z;
   edit(null);
   return load();
 }
 document.querySelectorAll("input[name=zbior]").forEach(function (r) {
   r.onchange = function () {
-    if (confirmLeave()) setZbior(r.value);
-    else document.querySelectorAll("input[name=zbior]").forEach(function (x) { x.checked = x.value === zbior; });
+    var chosen = r.value;
+    document.querySelectorAll("input[name=zbior]").forEach(function (x) { x.checked = x.value === zbior; });
+    confirmLeave().then(function (ok) {
+      if (ok) setZbior(chosen);
+    });
   };
 });
 $("#losuj").onclick = function () {

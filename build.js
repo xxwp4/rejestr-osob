@@ -90,6 +90,7 @@ function page({ title, description, canonical, body, schema, style = "" }) {
 <meta name="description" content="${esc(description)}">
 ${LOCAL ? `<meta name="robots" content="noindex, nofollow">` : `<link rel="canonical" href="${esc(canonical)}">
 <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">`}
+${!LOCAL && site.googleVerification ? `<meta name="google-site-verification" content="${esc(site.googleVerification)}">` : ""}
 ${schema.map(jsonLd).join("\n")}
 ${style && `<style>${style}</style>`}
 </head>

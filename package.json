@@ -6,6 +6,7 @@
     "build": "node build.js",
     "edytor": "node tools/edytor/server.js",
     "podglad": "node build.js --preview",
-    "test-strona": "node gen-test-data.js && node build.js --test"
+    "test-strona": "node gen-test-data.js && node build.js --test",
+    "wyslij": "node tools/wyslij.js"
   }
 }

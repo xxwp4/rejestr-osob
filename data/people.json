@@ -1,1 +1,37 @@
-[]
+[
+  {
+    "id": 1,
+    "name": "Mikołaj Czosnek",
+    "city": "Poznań",
+    "cityFrom": "z Poznania",
+    "role": "student architektury i biologii oraz twórca treści",
+    "summary": "Mikołaj Czosnek to student architektury na Politechnice i biologii w Elblągu, speedrunner gry The Binding of Isaac oraz autor filmów mukbang.",
+    "bio": [
+      "Mikołaj Czosnek urodził się w Piesinie, a obecnie pochodzi z Poznania, skąd wyjechał na studia. Łączy studia na kierunku architektura na Politechnice Poznańskiej oraz biologia w Elblągu.",
+      "W wolnym czasie zajmuje się speedrunowaniem gry The Binding of Isaac oraz nagrywa filmiki typu mukbang. Jego wielką pasją jest również malowanie kotów i psów."
+    ],
+    "attributes": {
+      "Wzrost": "158 cm",
+      "Miejsce urodzenia": "Piesin",
+      "Szkoła / uczelnia": "Politechnika (architektura), Uczelnia w Elblągu (biologia)",
+      "Zainteresowania": "speedrunning (The Binding of Isaac), mukbang, malowanie kotów i psów"
+    },
+    "faq": [
+      {
+        "q": "Kim jest Mikołaj Czosnek?",
+        "a": "To student architektury na Politechnice i biologii w Elblągu, speedrunner oraz twórca filmów mukbang."
+      },
+      {
+        "q": "Jakie są zainteresowania Mikołaja Czosnka?",
+        "a": "Mikołaj pasjonuje się speedrunowaniem The Binding of Isaac, nagrywaniem mukbangów oraz malowaniem kotów i psów."
+      }
+    ],
+    "dokumenty": {
+      "studium_porownawcze_batrachofauny_plazy_bezogonowe_polski_i_dorzecza_amazonki_an": {
+        "tytul": "Studium porównawcze batrachofauny: Płazy bezogonowe Polski i dorzecza Amazonki – Analiza morfologiczna, ekologiczna i biogeograficzna",
+        "opis": "Obszerny, wielostronicowy dokument badawczy szczegółowo analizujący biologię, ekologię, przystosowania morfologiczne oraz status ochrony żab w strefie umiarkowanej (Polska) i neotropikalnej (Amazonka).",
+        "latex": true
+      }
+    }
+  }
+]

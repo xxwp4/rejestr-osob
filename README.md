@@ -51,9 +51,33 @@ Zbiór testowy to `data/test-people.json` + `sources-test/` + `public-test/`. `n
 
 Każdy `git push` na `main` publikuje stronę automatycznie.
 
+## Wysyłanie na GitHub
+
+```bash
+npm run wyslij
+```
+
+albo przycisk **„Wyślij na GitHub”** w edytorze (widoczny w zbiorze „Prawdziwy”). Skrypt:
+
+1. buduje stronę z prawdziwych danych (błąd = nic nie zostaje wysłane),
+2. pokazuje zmienione pliki i liczbę osób/dokumentów,
+3. blokuje wysyłkę, jeśli wśród zmian są dane testowe lub lokalne,
+4. robi commit (`npm run wyslij -- "własny opis"`) i push,
+5. czeka na publikację na GitHub Pages i podaje adres strony.
+
+`npm run wyslij -- --sprawdz` pokazuje, co by poszło, niczego nie wysyłając.
+
 ## Google
 
-1. Dodaj domenę w [Google Search Console](https://search.google.com/search-console) (weryfikacja przez rekord TXT w DNS).
-2. Zgłoś mapę strony: `https://twoja-domena.pl/sitemap.xml`.
-3. Dla nowej osoby użyj „Sprawdzanie adresu URL” → „Poproś o zindeksowanie”.
-4. Sprawdź znaczniki: [Rich Results Test](https://search.google.com/test/rich-results).
+1. Wejdź na [Google Search Console](https://search.google.com/search-console) → „Dodaj usługę” →
+   **„Prefiks URL”** → wpisz adres strony z `data/site.json` (np. `https://xxwp4.github.io/rejestr-osob/`).
+2. Wybierz weryfikację **„Tag HTML”**, skopiuj samą wartość `content="…"` i wpisz ją w `data/site.json`:
+   `"googleVerification": "wartość"`. Wyślij (`npm run wyslij`), odczekaj minutę i kliknij „Zweryfikuj”.
+3. W Search Console → **Mapy witryn** zgłoś adres `sitemap.xml` (np. `https://xxwp4.github.io/rejestr-osob/sitemap.xml`).
+4. Po dodaniu nowej osoby: **„Sprawdzanie adresu URL”** → wklej adres jej podstrony → **„Poproś o zindeksowanie”**.
+5. Sprawdź dane strukturalne podstrony w [Rich Results Test](https://search.google.com/test/rich-results).
+
+Pierwsze strony pojawiają się w wynikach zwykle po kilku dniach do kilku tygodni; AI Overview pokazuje się tylko
+dla części zapytań i nie da się go wymusić. Najwięcej dają: prawdziwe, spójne dane, linki z profili danej osoby
+(Instagram, LinkedIn, strona klubu) z powrotem do jej podstrony i własna domena (pod adresem `github.io/rejestr-osob`
+plik `robots.txt` nie działa, bo musi leżeć w katalogu głównym domeny – mapę strony trzeba zgłosić ręcznie, jak wyżej).

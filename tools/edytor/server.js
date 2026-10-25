@@ -310,6 +310,14 @@ async function api(req, res, url) {
     return send(res, 200, p);
   }
 
+  // wysyłka na GitHub – tylko zbiór prawdziwy (skrypt sam pilnuje, żeby nie poszły dane testowe)
+  if (what === "publish" && method === "POST") {
+    if (z !== ZBIORY.prawdziwy) throw new Error("Na GitHub można wysłać tylko zbiór „Prawdziwy”");
+    const args = [path.join(ROOT, "tools/wyslij.js"), ...(q.get("opis") ? [q.get("opis")] : [])];
+    return execFile(process.execPath, args, { cwd: ROOT, timeout: 600000 }, (err, stdout, stderr) =>
+      send(res, err ? 500 : 200, { ok: !err, log: (stdout + stderr).trim() || String(err) }));
+  }
+
   if (what === "build" && method === "POST") {
     return execFile(process.execPath, [path.join(ROOT, "build.js"), ...z.buildArgs], { cwd: ROOT }, (err, stdout, stderr) => {
       if (!err) lastPreview = z.preview;
