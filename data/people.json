@@ -75,5 +75,141 @@
         "latex": true
       }
     }
+  },
+  {
+    "id": 3,
+    "name": "Kornelia Wiśniewska",
+    "city": "Gdańsk",
+    "cityFrom": "z Gdańska",
+    "role": "studentka oceanografii i żeglarka jachtowa",
+    "summary": "Kornelia Wiśniewska to studentka oceanografii na Uniwersytecie Gdańskim, pasjonatka żeglarstwa morskiego i batymetrii.",
+    "bio": [
+      "Kornelia Wiśniewska urodziła się w Gdyni, a obecnie mieszka i studiuje w Gdańsku. Jej pasją jest morze, co przekłada się zarówno na jej kierunek studiów (oceanografia), jak i spędzanie wolnego czasu na pokładzie jachtów regatowych. Specjalizuje się w badaniach prądów morskich i erozji brzegów."
+    ],
+    "attributes": {
+      "Wzrost": "168 cm",
+      "Miejsce urodzenia": "Gdynia",
+      "Szkoła / uczelnia": "Uniwersytet Gdański",
+      "Zainteresowania": "oceanografia fizyczna, regaty jachtowe, fotografowanie fal"
+    },
+    "faq": [
+      {
+        "q": "Kim jest Kornelia Wiśniewska?",
+        "a": "To studentka oceanografii z Gdańska oraz zapalona żeglarka."
+      },
+      {
+        "q": "Czym interesuje się Kornelia?",
+        "a": "Jej pasje to oceanografia fizyczna, żeglarstwo morskie oraz fotografowanie zjawisk falowych."
+      }
+    ],
+    "dokumenty": {
+      "analiza_dynamiki_pradow_zatoki_gdanskiej": {
+        "tytul": "Analiza dynamiki prądów Zatoki Gdańskiej",
+        "opis": "Krótki raport naukowy dotyczący pomiarów batymetrycznych i przepływów w rejonie Zatoki Gdańskiej.",
+        "latex": true
+      }
+    }
+  },
+  {
+    "id": 4,
+    "name": "Błażej Kaczmarek",
+    "city": "Wrocław",
+    "cityFrom": "z Wrocławia",
+    "role": "student robotyki i programista systemów embedded",
+    "summary": "Błażej Kaczmarek to student automatyki i robotyki na Politechnice Wrocławskiej, konstruktor autonomicznych łazików marsjańskich.",
+    "bio": [
+      "Błażej Kaczmarek pochodzi z Opola, a studia realizuje we Wrocławiu na Politechnice Wrocławskiej. Działa w kole naukowym, projektując układy sterowania i oprogramowanie mikrokontrolerów dla łazików startujących w zawodach międzynarodowych."
+    ],
+    "attributes": {
+      "Wzrost": "182 cm",
+      "Miejsce urodzenia": "Opole",
+      "Szkoła / uczelnia": "Politechnika Wrocławska",
+      "Zainteresowania": "systemy wbudowane, C++, robotyka mobilna, druk 3D"
+    },
+    "faq": [
+      {
+        "q": "Kim jest Błażej Kaczmarek?",
+        "a": "To student robotyki z Wrocławia i konstruktor systemów embedded."
+      },
+      {
+        "q": "Jakie są główne zainteresowania Błażeja?",
+        "a": "Programowanie w C++, robotyka mobilna oraz projektowanie układów elektronicznych."
+      }
+    ],
+    "dokumenty": {
+      "specyfikacja_techniczna_modulu_napedowego_lazika": {
+        "tytul": "Specyfikacja techniczna modułu napędowego łazika",
+        "opis": "Dokumentacja inżynierska układu sterowania PWM silników bezszczotkowych.",
+        "latex": true
+      }
+    }
+  },
+  {
+    "id": 5,
+    "name": "Kalina Szymańska",
+    "city": "Kraków",
+    "cityFrom": "z Krakowa",
+    "role": "studentka konserwacji dzieł sztuki i malarka",
+    "summary": "Kalina Szymańska to studentka Akademii Sztuk Pięknych w Krakowie, specjalizująca się w konserwacji malarstwa sztalugowego.",
+    "bio": [
+      "Kalina Szymańska urodziła się w Tarnowie, a obecnie studiuje w Krakowie na ASP. Łamitradyjne techniki malarskie z nowoczesną wiedzą z zakresu fizykochemii materiałów używanych przy renowacji zabytków sakralnych."
+    ],
+    "attributes": {
+      "Wzrost": "164 cm",
+      "Miejsce urodzenia": "Tarnów",
+      "Szkoła / uczelnia": "Akademia Sztuk Pięknych im. Jana Matejki w Krakowie",
+      "Zainteresowania": "historia sztuki, chemia konserwatorska, malarstwo olejne"
+    },
+    "faq": [
+      {
+        "q": "Kim jest Kalina Szymańska?",
+        "a": "To studentka konserwacji dzieł sztuki z Krakowa."
+      },
+      {
+        "q": "Czym zajmuje się Kalina w ramach studiów?",
+        "a": "Specjalizuje się w renowacji i badaniu technologii malarstwa sztalugowego."
+      }
+    ],
+    "dokumenty": {
+      "analiza_strat_pigmentowych_w_obrazie_olejnym_xvii_w": {
+        "tytul": "Analiza strat pigmentowych w obrazie olejnym XVII w.",
+        "opis": "Raport z badań stratygraficznych warstw malarskich z wykorzystaniem mikroskopii optycznej.",
+        "latex": true
+      }
+    }
+  },
+  {
+    "id": 6,
+    "name": "Tymon Lewandowski",
+    "city": "Łódź",
+    "cityFrom": "z Łodzi",
+    "role": "student montażu filmowego i reżyser dźwięku",
+    "summary": "Tymon Lewandowski to student Szkoły Filmowej w Łodzi, montażysta i projektant dźwięku w kinie niezależnym.",
+    "bio": [
+      "Tymon Lewandowski pochodzi z Kalisza, a rozwija swoją pasję filmową w Łodzi. Specjalizuje się w montażu obrazu oraz zaawansowanym projektowaniu pejzaży dźwiękowych (sound design) do filmów krótkometrażowych."
+    ],
+    "attributes": {
+      "Wzrost": "177 cm",
+      "Miejsce urodzenia": "Kalisz",
+      "Szkoła / uczelnia": "Szkoła Filmowa w Łodzi (PWSFTviT)",
+      "Zainteresowania": "postprodukcja wideo, field recording, synteza dźwięku modularnego"
+    },
+    "faq": [
+      {
+        "q": "Kim jest Tymon Lewandowski?",
+        "a": "To student łódzkiej Szkoły Filmowej, montażysta i dźwiękowiec."
+      },
+      {
+        "q": "Jakie są główne obszary jego działalności?",
+        "a": "Postprodukcja filmowa, nagrania terenowe oraz synteza dźwięku."
+      }
+    ],
+    "dokumenty": {
+      "standardy_miksu_dzwieku_wielokanalowego_w_kinie_niezaleznym": {
+        "tytul": "Standardy miksu dźwięku wielokanałowego w kinie niezależnym",
+        "opis": "Wytyczne techniczne dotyczące poziomów LUFS oraz przestrzennego rozmieszczenia dialogów.",
+        "latex": true
+      }
+    }
   }
 ]

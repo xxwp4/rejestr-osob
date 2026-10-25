@@ -1,0 +1,16 @@
+\section*{1. Założenia projektowe}
+Moduł napędowy został zaprojektowany z myślą o pracy w trudnych warunkach terenowych (symulacja powierzchni marsjańskiej).
+
+\section*{2. Zestawienie podzespołów}
+\begin{tabularx}{\textwidth}{lXX}
+\toprule
+\textbf{Komponent} & \textbf{Model / Typ} & \textbf{Przeznaczenie} \\
+\midrule
+Mikrokontroler & STM32F446RE & Główna jednostka obliczeniowa \\
+Sterownik silnika & ESC 30A BLDC & Regulacja obrotów trójfazowych \\
+Czujnik prądu & ACS712 & Zabezpieczenie przeciążeniowe \\
+\bottomrule
+\end{tabularx}
+
+\section*{3. Podsumowanie}
+Przeprowadzone testy obciążeniowe wykazały stabilną pracę układu przy prądach ciągłych do 15A.
