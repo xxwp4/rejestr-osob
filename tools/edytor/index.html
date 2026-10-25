@@ -18,9 +18,12 @@ table.form th { text-align: left; white-space: nowrap; width: 1%; padding-right:
 .ok { color: #080; }
 .err { color: #c00; }
 tr.sel { background: #ffffcc; }
-#msg { font-weight: bold; min-height: 1.2em; }
+#msg { font-weight: bold; min-height: 1.2em; white-space: pre-wrap; }
 pre { background: #eee; padding: 6px; white-space: pre-wrap; }
 .serp { font-family: Arial, sans-serif; border: 1px dashed #999; padding: 8px; }
+.texdoc { border: 1px dashed #999; padding: 6px; margin: 6px 0; }
+textarea.tex { font-family: "Courier New", monospace; font-size: 13px; }
+.texdoc .err { white-space: pre-wrap; }
 .serp .u { color: #202124; font-size: 12px; }
 .serp .t { color: #1a0dab; font-size: 18px; }
 .serp .d { color: #4d5156; font-size: 13px; }
@@ -75,6 +78,13 @@ P: Kim jest [imię nazwisko] z [miasta]?
 O: …
 P: …
 O: …
+Dokumenty:
+Dokument: [nazwa dokumentu]
+Opis dokumentu: [1–2 zdania: co zawiera dokument]
+LaTeX:
+&lt;&lt;&lt;
+[sama treść dokumentu w LaTeX]
+&gt;&gt;&gt;
 
 Zasady:
 - Używaj wyłącznie faktów z podanych informacji. Niczego nie dopisuj ani nie zgaduj.
@@ -82,6 +92,16 @@ Zasady:
 - Atrybuty: krótkie pary, np. Rocznik, Wzrost, Pozycja, Klub, Szkoła / uczelnia, Języki, Zainteresowania.
 - Linki: tylko pełne adresy URL, które występują w podanych informacjach.
 - Pytania: 2–3 pary, odpowiedzi 1–2 zdania.
+- Dokumenty: zaproponuj 1–3 dokumenty, które realnie przydałyby się tej osobie, zbudowane WYŁĄCZNIE z podanych faktów,
+  np. CV, karta zawodnika ze statystykami, lista osiągnięć, opis umiejętności, portfolio.
+  NIE twórz dokumentów urzędowych ani ich imitacji (prawo jazdy, pozwolenia, zaświadczenia, świadectwa, dyplomy,
+  certyfikaty, wyniki badań, umowy, legitymacje).
+- Każdy dokument: linia „Dokument: …”, linia „Opis dokumentu: …”, linia „LaTeX:”, potem linia &lt;&lt;&lt;,
+  treść i linia &gt;&gt;&gt; (każdy znacznik w osobnej linii).
+- Treść LaTeX: tylko to, co jest między \begin{document} a \end{document} – BEZ \documentclass, \usepackage,
+  \begin{document}, \input, \include, \def. Tytułu i imienia nie powtarzaj (szablon dodaje je sam).
+  Dozwolone: \section*, \subsection*, itemize, enumerate, tabularx/tabular/longtable z \toprule \midrule \bottomrule,
+  \textbf, \textit, \textcolor, \\, \vspace. Znaki % $ &amp; # _ w zwykłym tekście poprzedzaj \.
 - Kilka osób oddziel linią zawierającą tylko: ---
 - Zwróć tylko gotowy tekst w tym formacie, bez komentarzy i bez formatowania Markdown.
 
@@ -157,6 +177,15 @@ i najlepiej dodaj w nich link zwrotny do jej podstrony.</p>
 <button type="button" id="addFaq">+ dodaj pytanie</button>
 </fieldset>
 
+<fieldset>
+<legend>Dokumenty z LaTeX → PDF</legend>
+<p class="hint">Wygenerują się przy zapisie osoby i trafią do folderu z dokumentami jako <code>&lt;nr&gt;_&lt;nazwa&gt;.pdf</code>, z tytułem i opisem na stronie.
+Tylko dokumenty informacyjne (CV, statystyki, osiągnięcia) – dokumentów urzędowych generator nie tworzy, a każdy PDF ma w stopce dopisek „dokument informacyjny”.
+Wpisz samą treść (bez <code>\documentclass</code> i <code>\usepackage</code>).</p>
+<div id="texDocs"></div>
+<button type="button" id="addTex">+ dodaj dokument LaTeX</button>
+</fieldset>
+
 <p><button type="submit"><b>Zapisz osobę</b></button> <span class="hint">(Ctrl+S)</span></p>
 </form>
 
@@ -174,6 +203,7 @@ i najlepiej dodaj w nich link zwrotny do jej podstrony.</p>
 <tr><th><label for="docFile">Plik</label></th><td><input type="file" id="docFile" accept=".pdf,application/pdf"></td></tr>
 <tr><th><label for="docName">Nazwa</label></th><td><input type="text" id="docName" placeholder="np. dokument badania zab">
 <div class="hint">Zapisze się jako: <code id="docTarget">–</code></div></td></tr>
+<tr><th><label for="docOpis">Opis</label></th><td><input type="text" id="docOpis" placeholder="1–2 zdania: co zawiera dokument (widoczne na stronie)"></td></tr>
 </table>
 <p><button type="button" id="docSend">Wyślij dokument</button></p>
 </div>
@@ -307,7 +337,50 @@ function fill(p) {
   Object.entries((p && p.attributes) || {}).forEach(function (e) { addPair("attrs", e[0], e[1], "nazwa, np. Rocznik", "wartość", "attrKeys"); });
   Object.entries((p && p.links) || {}).forEach(function (e) { addPair("links", e[0], e[1], "serwis", "https://…", "linkKeys"); });
   ((p && p.faq) || []).forEach(function (f) { addPair("faq", f.q, f.a, "pytanie", "odpowiedź"); });
+  $("#texDocs").innerHTML = "";
   hints();
+}
+
+// --- dokumenty LaTeX czekające na wygenerowanie --------------------------
+
+function addTexDoc(d, error) {
+  var box = document.createElement("div");
+  box.className = "texdoc";
+  box.innerHTML = '<table class="form">' +
+    '<tr><th>Nazwa dokumentu</th><td><input type="text" class="t" placeholder="np. Karta zawodnika – sezon 2023/2024"></td></tr>' +
+    '<tr><th>Opis dokumentu</th><td><input type="text" class="d" placeholder="1–2 zdania: co zawiera dokument"></td></tr>' +
+    '<tr><th>Treść LaTeX</th><td><textarea class="tex" rows="10" spellcheck="false"></textarea></td></tr>' +
+    '</table><p class="err"></p><button type="button">usuń dokument</button>';
+  box.querySelector(".t").value = (d && d.title) || "";
+  box.querySelector(".d").value = (d && d.description) || "";
+  box.querySelector("textarea").value = (d && d.latex) || "";
+  box.querySelector(".err").textContent = error || "";
+  box.querySelector("button").onclick = function () { box.remove(); changed(); };
+  $("#texDocs").appendChild(box);
+  return box;
+}
+function readTexDocs() {
+  return Array.prototype.map.call($("#texDocs").children, function (box) {
+    return {
+      el: box,
+      title: box.querySelector(".t").value.trim(),
+      description: box.querySelector(".d").value.trim(),
+      latex: box.querySelector("textarea").value
+    };
+  });
+}
+
+// generuje PDF-y jeden po drugim; zwraca te, które się nie udały
+function generateDocs(id, docs) {
+  var failed = [];
+  return docs.reduce(function (chain, d) {
+    return chain.then(function () {
+      var errors = sprawdzDokument(d);
+      if (errors.length) { failed.push({ doc: d, error: errors.join("\n") }); return; }
+      return api("POST", "/api/latex/" + id, { title: d.title, description: d.description, latex: d.latex })
+        .catch(function (e) { failed.push({ doc: d, error: e.message }); });
+    });
+  }, Promise.resolve()).then(function () { return failed; });
 }
 
 function collect() {
@@ -320,16 +393,37 @@ function collect() {
   return d;
 }
 
+// blokada: generowanie PDF-ów trwa, a kolejne kliknięcie zakładałoby tę samą osobę drugi raz
+var saving = false;
+function setSaving(on) {
+  saving = on;
+  var btn = $("#f button[type=submit]");
+  btn.disabled = on;
+  btn.innerHTML = on ? "<b>Zapisuję…</b>" : "<b>Zapisz osobę</b>";
+}
+
 function save() {
+  if (saving) return;
   var d = collect();
   if (!d.name) { msg("Wpisz imię i nazwisko.", false); $("#name").focus(); return; }
   var bad = Object.entries(d.links).filter(function (e) { return !/^https?:\/\/\S+\.\S+/.test(e[1]); });
   if (bad.length) { msg("Nieprawidłowy link: " + bad[0][0] + " – musi zaczynać się od https://", false); return; }
-  api("POST", "/api/people", d).then(function (saved) {
-    dirty = false;
-    msg("Zapisano: " + saved.name + " (nr " + saved.id + "). Kliknij „Zbuduj podgląd”, żeby zobaczyć stronę.", true);
-    return load(saved.id);
-  }).catch(fail);
+  var docs = readTexDocs();
+  var saved;
+  if (docs.length) msg("Zapisuję i generuję PDF-y (" + docs.length + ")…", true);
+  setSaving(true);
+  api("POST", "/api/people", d).then(function (s) {
+    saved = s;
+    return generateDocs(saved.id, docs);
+  }).then(function (failed) {
+    return load(saved.id).then(function () {
+      failed.forEach(function (f) { addTexDoc(f.doc, f.error); });
+      dirty = failed.length > 0;
+      var made = docs.length - failed.length;
+      if (failed.length) msg("Zapisano " + saved.name + ", ale " + failed.length + " z " + docs.length + " dokumentów się nie wygenerowało – popraw je poniżej i zapisz ponownie.", false);
+      else msg("Zapisano: " + saved.name + " (nr " + saved.id + ")" + (made ? ", wygenerowano PDF-y: " + made : "") + ". Kliknij „Zbuduj podgląd”, żeby zobaczyć stronę.", true);
+    });
+  }).catch(fail).then(function () { setSaving(false); });
 }
 
 function changed() { dirty = true; hints(); }
@@ -362,11 +456,27 @@ function renderFiles() {
   if (!current.documents.length) ul.innerHTML = "<li><i>brak dokumentów</i></li>";
   current.documents.forEach(function (d) {
     var li = document.createElement("li");
-    li.innerHTML = '<a target="_blank"></a> [<span></span>] <a href="#">usuń</a>';
+    li.innerHTML = '<a target="_blank"></a> <code></code> [<span></span>] <a href="#">usuń</a><br><small></small>';
     var a = li.querySelectorAll("a");
     a[0].href = withZbior("/edytor/pliki/" + encodeURIComponent(d.file));
-    a[0].textContent = d.file;
-    li.querySelector("span").textContent = kb(d.size);
+    a[0].textContent = d.tytul || d.file;
+    li.querySelector("code").textContent = d.tytul ? d.file : "";
+    li.querySelector("span").textContent = kb(d.size) + (d.latex ? ", z LaTeX" : "");
+    li.querySelector("small").textContent = d.opis || "";
+    if (d.latex) {
+      var ed = document.createElement("a");
+      ed.href = "#";
+      ed.textContent = "edytuj LaTeX";
+      ed.onclick = function (e) {
+        e.preventDefault();
+        api("GET", "/api/latex?file=" + encodeURIComponent(d.file)).then(function (src) {
+          addTexDoc(src).scrollIntoView();
+          changed();
+          msg("Źródło wczytane do formularza – po poprawkach kliknij „Zapisz osobę”, PDF zostanie wygenerowany ponownie.", true);
+        }).catch(fail);
+      };
+      a[1].before(ed, " ");
+    }
     a[1].onclick = function (e) {
       e.preventDefault();
       if (!confirm("Usunąć " + d.file + "? Plik trafi do .kosz.")) return;
@@ -395,9 +505,10 @@ $("#docSend").onclick = function () {
   if (!f) return msg("Wybierz plik.", false);
   if (!name) return msg("Wpisz nazwę dokumentu.", false);
   if (dirty && !confirm("Masz niezapisane zmiany w formularzu – wysłanie pliku ich nie zapisze. Kontynuować?")) return;
-  api("POST", "/api/files/" + current.id + "?name=" + encodeURIComponent(name) + "&ext=" + ext(f), f, true).then(function (r) {
+  var opis = $("#docOpis").value.trim();
+  api("POST", "/api/files/" + current.id + "?name=" + encodeURIComponent(name) + "&opis=" + encodeURIComponent(opis) + "&ext=" + ext(f), f, true).then(function (r) {
     msg("Dodano dokument: " + r.file, true);
-    $("#docFile").value = ""; $("#docName").value = "";
+    $("#docFile").value = ""; $("#docName").value = ""; $("#docOpis").value = "";
     return load(current.id);
   }).catch(fail);
 };
@@ -459,6 +570,7 @@ $("#f").addEventListener("input", changed);
 $("#f").onsubmit = function (e) { e.preventDefault(); save(); };
 $("#addAttr").onclick = function () { addPair("attrs", "", "", "nazwa, np. Rocznik", "wartość", "attrKeys").focus(); };
 $("#addLink").onclick = function () { addPair("links", "", "", "serwis", "https://…", "linkKeys").focus(); };
+$("#addTex").onclick = function () { addTexDoc(null).querySelector(".t").focus(); changed(); };
 $("#addFaq").onclick = function () { addPair("faq", "", "", "pytanie", "odpowiedź").focus(); };
 $("#nowa").onclick = function () { if (confirmLeave()) { edit(null); $("#name").focus(); } };
 $("#buduj").onclick = function () {
@@ -488,7 +600,7 @@ function merge(base, p) {
   out.links = Object.assign({}, base.links, p.links);
   return out;
 }
-function describe(p) {
+function describe(p, r) {
   var parts = [];
   if (p.city) parts.push(p.city);
   if (p.role) parts.push(p.role);
@@ -497,6 +609,7 @@ function describe(p) {
   if (l) parts.push("linki: " + l);
   if (p.bio.length) parts.push("opis");
   if (p.faq.length) parts.push("pytania: " + p.faq.length);
+  if (r && r.documents.length) parts.push("dokumenty: " + r.documents.length);
   return parts.join(", ");
 }
 
@@ -510,19 +623,34 @@ function toForm(r) {
     edit(null);
     fill(p);
   }
+  r.documents.forEach(function (d) { addTexDoc(d, d.errors.join("\n")); });
   dirty = true;
-  msg("Wczytano do formularza: " + p.name + (r.guessedFrom ? " (forma „" + p.cityFrom + "” zgadnięta – sprawdź)" : "") + ". Sprawdź dane i kliknij „Zapisz osobę”.", true);
+  var text = "Wczytano do formularza: " + p.name +
+    (r.documents.length ? ", dokumenty do wygenerowania: " + r.documents.length : "") +
+    (r.guessedFrom ? " (forma „" + p.cityFrom + "” zgadnięta – sprawdź)" : "") + ".";
+  if (r.errors.length) msg(text + " Błędy do poprawienia:\n" + r.errors.join("\n"), false);
+  else msg(text + " Sprawdź dane i kliknij „Zapisz osobę”.", true);
   $("#f").scrollIntoView();
 }
 
 function saveAll(results) {
   var todo = results.filter(function (r) { return !existing(r.person); });
   var skipped = results.length - todo.length;
-  var done = 0;
+  var done = 0, pdfs = 0, problems = [];
   return todo.reduce(function (chain, r) {
-    return chain.then(function () { return api("POST", "/api/people", r.person).then(function () { done++; }); });
+    return chain.then(function () {
+      return api("POST", "/api/people", r.person).then(function (saved) {
+        done++;
+        return generateDocs(saved.id, r.documents).then(function (failed) {
+          pdfs += r.documents.length - failed.length;
+          failed.forEach(function (f) { problems.push(saved.name + " – " + f.error); });
+        });
+      });
+    });
   }, Promise.resolve()).then(function () {
-    msg("Dodano " + done + " osób" + (skipped ? ", pominięto " + skipped + " już istniejących" : "") + ".", true);
+    var text = "Dodano " + done + " osób, wygenerowano PDF-y: " + pdfs + (skipped ? ", pominięto " + skipped + " już istniejących" : "") + ".";
+    if (problems.length) msg(text + " Nie wygenerowano:\n" + problems.join("\n"), false);
+    else msg(text, true);
     $("#wynik").innerHTML = "";
     return load();
   }).catch(function (e) { fail(e); load(); });
@@ -543,9 +671,16 @@ $("#przetworz").onclick = function () {
     var old = existing(r.person);
     li.innerHTML = "<b></b> – <span></span> <i></i> <a href=\"#\">do formularza</a>";
     li.querySelector("b").textContent = r.person.name;
-    li.querySelector("span").textContent = describe(r.person) || "same imię i nazwisko";
+    li.querySelector("span").textContent = describe(r.person, r) || "same imię i nazwisko";
     li.querySelector("i").textContent = old ? "(już jest: nr " + old.id + ")" : r.guessedFrom ? "(„" + r.person.cityFrom + "” zgadnięte)" : "";
     li.querySelector("a").onclick = function (e) { e.preventDefault(); toForm(r); };
+    if (r.errors.length) {
+      var err = document.createElement("div");
+      err.className = "err";
+      err.style.whiteSpace = "pre-wrap";
+      err.textContent = r.errors.join("\n");
+      li.appendChild(err);
+    }
     ul.appendChild(li);
   });
   var btn = document.createElement("button");

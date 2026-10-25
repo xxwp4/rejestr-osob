@@ -55,10 +55,13 @@ for (const f of sourceFiles) {
   if (!m) { console.warn(`Uwaga: ${SRC_DIR}/${f} nie ma prefiksu "<id>_" – pomijam`); continue; }
   const owner = byId.get(Number(m[1]));
   if (!owner) { console.warn(`Uwaga: ${SRC_DIR}/${f} – brak osoby o id ${m[1]}`); continue; }
-  const title = m[2].replace(/[_-]+/g, " ");
+  // tytuł i opis z pola "dokumenty" osoby (ustawia je edytor), inaczej tytuł z nazwy pliku
+  const meta = (owner.dokumenty || {})[m[2]] || {};
+  const title = meta.tytul || m[2].replace(/[_-]+/g, " ");
   owner.documents.push({
     file: f,
     title: title[0].toUpperCase() + title.slice(1),
+    description: meta.opis || "",
     ext: m[3].toUpperCase(),
     size: fs.statSync(path.join(srcPath, f)).size,
     href: `${base}/sources/${encodeURIComponent(f)}`,
@@ -154,6 +157,7 @@ function personPage(p) {
       "@context": "https://schema.org",
       "@type": "DigitalDocument",
       name: `${d.title} – ${p.name}`,
+      ...(d.description && { description: d.description }),
       url: d.href,
       encodingFormat: d.ext === "PDF" ? "application/pdf" : undefined,
       about: { "@id": `${personUrl(p)}#person` },
@@ -175,7 +179,7 @@ ${rows.map(([k, v]) => `<tr><th scope="row" align="left" valign="top">${esc(k)}<
 </table>
 ${p.documents.length ? `<h2>Dokumenty</h2>
 <ul>
-${p.documents.map((d) => `<li><a href="${esc(d.href)}">${esc(d.title)}</a> [${d.ext}, ${kb(d.size)}]</li>`).join("\n")}
+${p.documents.map((d) => `<li><a href="${esc(d.href)}">${esc(d.title)}</a> [${d.ext}, ${kb(d.size)}]${d.description ? `<br>\n${esc(d.description)}` : ""}</li>`).join("\n")}
 </ul>` : ""}
 ${links.length || p.email ? `<h2>Linki</h2>
 <ul>

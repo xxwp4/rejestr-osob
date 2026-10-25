@@ -27,6 +27,44 @@ O: To student informatyki i koszykarz, zawodnik Astorii Bydgoszcz.
 P: Na jakiej pozycji gra Jan Kowalski?
 O: Gra na pozycji środkowego.
 
+Dokumenty:
+Dokument: Karta zawodnika – sezon 2023/2024
+Opis dokumentu: Podstawowe dane i statystyki Jana Kowalskiego z sezonu 2023/2024 w Basket 2010 Kruszwica.
+LaTeX:
+<<<
+\section*{Dane zawodnika}
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+Rocznik & 2005 \\
+Wzrost & 196 cm \\
+Pozycja & środkowy \\
+\bottomrule
+\end{tabularx}
+
+\section*{Sezon 2023/2024}
+\begin{tabularx}{\textwidth}{Xrr}
+\toprule
+Drużyna & Mecze & Punkty \\
+\midrule
+Basket 2010 Kruszwica & 7 & 6 \\
+\bottomrule
+\end{tabularx}
+>>>
+
+Dokument: CV
+Opis dokumentu: Krótkie CV: wykształcenie, sport i umiejętności.
+LaTeX:
+<<<
+\section*{Wykształcenie}
+Politechnika Bydgoska -- informatyka (od 2024).
+
+\section*{Sport}
+\begin{itemize}
+\item Astoria Bydgoszcz -- środkowy
+\item Basket 2010 Kruszwica -- sezon 2023/2024
+\end{itemize}
+>>>
+
 ---
 
 Imię i nazwisko: Anna Nowak

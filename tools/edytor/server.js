@@ -4,14 +4,17 @@
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
+const os = require("os");
 const { execFile } = require("child_process");
 const { addRandomPeople } = require("../../gen-test-data");
+const { checkDocument } = require("./parser");
 
 const ROOT = path.resolve(__dirname, "../..");
 const SITE = path.join(ROOT, "data/site.json");
 const TRASH = path.join(ROOT, ".kosz");
 const PORT = Number(process.env.PORT) || 3000;
 const MAX_UPLOAD = 50 * 1024 * 1024;
+const XELATEX = process.env.XELATEX || "xelatex";
 
 // dwa zbiory: testowy (losowe osoby, noindex, nie trafia na stronę) i prawdziwy (publikowany)
 const ZBIORY = {
@@ -19,6 +22,7 @@ const ZBIORY = {
     people: path.join(ROOT, "data/test-people.json"),
     sources: path.join(ROOT, "sources-test"),
     public: path.join(ROOT, "public-test"),
+    tex: path.join(ROOT, "data/tex-test"),
     preview: path.join(ROOT, "dist-test"),
     buildArgs: ["--test"],
   },
@@ -26,6 +30,7 @@ const ZBIORY = {
     people: path.join(ROOT, "data/people.json"),
     sources: path.join(ROOT, "sources"),
     public: path.join(ROOT, "public"),
+    tex: path.join(ROOT, "data/tex"),
     preview: path.join(ROOT, "dist-preview"),
     buildArgs: ["--preview"],
   },
@@ -52,11 +57,66 @@ const findPerson = (list, id) => {
   return p;
 };
 
-const docsOf = (z, id) =>
+// "12_lista_startow.pdf" -> "lista_startow" (klucz w polu "dokumenty" osoby)
+const stemOf = (file) => file.replace(/^\d+_/, "").replace(/\.[^.]+$/, "");
+
+const docsOf = (z, p) =>
   fs.existsSync(z.sources)
-    ? fs.readdirSync(z.sources).filter((f) => f.startsWith(`${id}_`)).sort()
-        .map((file) => ({ file, size: fs.statSync(path.join(z.sources, file)).size }))
+    ? fs.readdirSync(z.sources).filter((f) => f.startsWith(`${p.id}_`)).sort()
+        .map((file) => ({ file, size: fs.statSync(path.join(z.sources, file)).size, ...((p.dokumenty || {})[stemOf(file)] || {}) }))
     : [];
+
+// --- LaTeX -> PDF ---------------------------------------------------------
+
+const texEsc = (s = "") =>
+  String(s).replace(/[\\{}$&#^_%~]/g, (c) =>
+    ({ "\\": "\\textbackslash{}", "~": "\\textasciitilde{}", "^": "\\textasciicircum{}" }[c] || "\\" + c));
+// tekst do metadanych PDF jako UTF-16BE (żeby działały polskie znaki)
+const pdfStr = (s = "") => `<FEFF${Buffer.from(String(s), "utf16le").swap16().toString("hex").toUpperCase()}>`;
+
+// stały szablon: AI/użytkownik podaje tylko treść, stopka zawsze mówi, że to dokument informacyjny
+function texDocument(site, p, d) {
+  return `\\documentclass[11pt,a4paper]{article}
+\\usepackage{fontspec}
+\\usepackage[margin=2.5cm]{geometry}
+\\usepackage{booktabs,tabularx,longtable,array,multirow,xcolor,graphicx}
+\\special{pdf:docinfo<</Title ${pdfStr(d.title)} /Author ${pdfStr(p.name)} /Subject ${pdfStr(d.description)} /Creator ${pdfStr(site.name)}>>}
+\\makeatletter
+\\def\\@oddfoot{\\hfil\\footnotesize ${texEsc(site.name)} -- dokument informacyjny, nie jest dokumentem urzędowym.\\hfil}
+\\let\\@evenfoot\\@oddfoot\\def\\@oddhead{}\\let\\@evenhead\\@oddhead
+\\makeatother
+\\setlength{\\parindent}{0pt}
+\\setlength{\\parskip}{6pt}
+\\begin{document}
+{\\Large\\bfseries ${texEsc(d.title)}\\par}
+\\vspace{2pt}{\\large ${texEsc(p.name)}${p.cityFrom ? " " + texEsc(p.cityFrom) : ""}\\par}
+\\vspace{2pt}{\\small\\itshape ${texEsc(d.description)}\\par}
+\\vspace{6pt}\\hrule\\vspace{6pt}
+${d.latex}
+\\end{document}
+`;
+}
+
+function compileLatex(tex) {
+  return new Promise((resolve, reject) => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "rejestr-latex-"));
+    fs.writeFileSync(path.join(dir, "doc.tex"), tex);
+    const args = ["-no-shell-escape", "-interaction=nonstopmode", "-halt-on-error", "doc.tex"];
+    execFile(XELATEX, args, { cwd: dir, timeout: 120000, windowsHide: true }, (err, stdout) => {
+      const pdf = path.join(dir, "doc.pdf");
+      let data = null, why = "";
+      if (!err && fs.existsSync(pdf)) data = fs.readFileSync(pdf);
+      else if (err && err.code === "ENOENT") why = "nie znaleziono programu xelatex – zainstaluj MiKTeX albo TeX Live";
+      else {
+        const lines = String(stdout).split(/\r?\n/);
+        const i = lines.findIndex((l) => l.startsWith("!"));
+        why = i >= 0 ? lines.slice(i, i + 4).join("\n") : String(err && err.message);
+      }
+      fs.rmSync(dir, { recursive: true, force: true });
+      data ? resolve(data) : reject(new Error(`Błąd LaTeX: ${why}`));
+    });
+  });
+}
 
 // nic nie jest kasowane na stałe – usunięte pliki lądują w .kosz/
 function trash(file) {
@@ -115,7 +175,7 @@ async function api(req, res, url) {
   if (what === "site" && method === "GET") return send(res, 200, JSON.parse(fs.readFileSync(SITE, "utf8")));
 
   if (what === "people" && method === "GET")
-    return send(res, 200, readPeople(z).map((p) => ({ ...p, documents: docsOf(z, p.id) })));
+    return send(res, 200, readPeople(z).map((p) => ({ ...p, documents: docsOf(z, p) })));
 
   // zapis osoby: bez id = nowa (dopisana na koniec), z id = edycja (pola spoza formularza zostają)
   if (what === "people" && method === "POST") {
@@ -137,7 +197,10 @@ async function api(req, res, url) {
     const id = Number(arg);
     const list = readPeople(z);
     const p = findPerson(list, id);
-    for (const d of docsOf(z, id)) trash(path.join(z.sources, d.file));
+    for (const d of docsOf(z, p)) {
+      trash(path.join(z.sources, d.file));
+      trash(path.join(z.tex, `${id}_${stemOf(d.file)}.tex`));
+    }
     trashPhoto(z, p);
     writePeople(z, list.filter((x) => x.id !== id));
     return send(res, 200, { ok: true });
@@ -155,7 +218,8 @@ async function api(req, res, url) {
   if (what === "files" && method === "POST") {
     const id = Number(arg);
     findPerson(readPeople(z), id);
-    const name = safeName(q.get("name"));
+    const title = String(q.get("name") || "").trim();
+    const name = safeName(title);
     const ext = String(q.get("ext") || "").toLowerCase();
     if (!name) throw new Error("Podaj nazwę dokumentu");
     if (!/^[a-z0-9]{1,5}$/.test(ext)) throw new Error("Nieprawidłowe rozszerzenie pliku");
@@ -164,14 +228,60 @@ async function api(req, res, url) {
     const data = await readBody(req, MAX_UPLOAD);
     fs.mkdirSync(z.sources, { recursive: true });
     fs.writeFileSync(path.join(z.sources, file), data);
+    const list = readPeople(z);
+    const p = findPerson(list, id);
+    p.dokumenty = { ...(p.dokumenty || {}), [name]: clean({ tytul: title, opis: String(q.get("opis") || "").trim() }) };
+    writePeople(z, list);
     return send(res, 200, { file });
   }
 
   if (what === "files" && method === "DELETE") {
     const file = path.basename(decodeURIComponent(arg || ""));
-    if (!/^\d+_/.test(file)) throw new Error("Nieprawidłowa nazwa pliku");
+    const m = /^(\d+)_/.exec(file);
+    if (!m) throw new Error("Nieprawidłowa nazwa pliku");
     trash(path.join(z.sources, file));
+    trash(path.join(z.tex, `${m[1]}_${stemOf(file)}.tex`));
+    const list = readPeople(z);
+    const p = list.find((x) => x.id === Number(m[1]));
+    if (p && p.dokumenty) {
+      delete p.dokumenty[stemOf(file)];
+      if (!Object.keys(p.dokumenty).length) delete p.dokumenty;
+      writePeople(z, list);
+    }
     return send(res, 200, { ok: true });
+  }
+
+  // dokument z LaTeX: body { title, description, latex } -> <sources>/<id>_<nazwa>.pdf (+ źródło w data/tex)
+  if (what === "latex" && method === "POST") {
+    const id = Number(arg);
+    const d = JSON.parse(await readBody(req, 2e6));
+    const errors = checkDocument(d);
+    if (errors.length) throw new Error(errors.join("\n"));
+    const site = JSON.parse(fs.readFileSync(SITE, "utf8"));
+    const pdf = await compileLatex(texDocument(site, findPerson(readPeople(z), id), d));
+    const name = safeName(d.title);
+    const file = `${id}_${name}.pdf`;
+    trash(path.join(z.sources, file));
+    fs.mkdirSync(z.sources, { recursive: true });
+    fs.writeFileSync(path.join(z.sources, file), pdf);
+    fs.mkdirSync(z.tex, { recursive: true });
+    fs.writeFileSync(path.join(z.tex, `${id}_${name}.tex`), d.latex);
+    const list = readPeople(z);
+    const p = findPerson(list, id);
+    p.dokumenty = { ...(p.dokumenty || {}), [name]: { tytul: d.title.trim(), opis: d.description.trim(), latex: true } };
+    writePeople(z, list);
+    return send(res, 200, { file, size: pdf.length });
+  }
+
+  // źródło LaTeX wygenerowanego dokumentu – do ponownej edycji
+  if (what === "latex" && method === "GET") {
+    const file = path.basename(String(q.get("file") || ""));
+    const m = /^(\d+)_/.exec(file);
+    if (!m) throw new Error("Nieprawidłowa nazwa pliku");
+    const tex = path.join(z.tex, `${m[1]}_${stemOf(file)}.tex`);
+    if (!fs.existsSync(tex)) throw new Error("Ten dokument nie ma źródła LaTeX");
+    const meta = (findPerson(readPeople(z), Number(m[1])).dokumenty || {})[stemOf(file)] || {};
+    return send(res, 200, { title: meta.tytul || stemOf(file), description: meta.opis || "", latex: fs.readFileSync(tex, "utf8") });
   }
 
   // zdjęcie -> <public>/img/<id>_<imie_nazwisko>.<rozszerzenie>

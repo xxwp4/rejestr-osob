@@ -45,6 +45,61 @@ Imię i nazwisko: Następna osoba
 ...
 ```
 
+### Dokumenty (LaTeX → PDF)
+
+Na końcu wpisu osoby możesz dodać dokumenty. Każdy ma **nazwę, opis i treść w LaTeX** między liniami `<<<` i `>>>`:
+
+```
+Dokumenty:
+Dokument: Karta zawodnika – sezon 2023/2024
+Opis dokumentu: Podstawowe dane i statystyki z sezonu 2023/2024.
+LaTeX:
+<<<
+\section*{Dane zawodnika}
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+Rocznik & 2005 \\
+Wzrost & 196 cm \\
+\bottomrule
+\end{tabularx}
+>>>
+
+Dokument: CV
+Opis dokumentu: Wykształcenie, sport i umiejętności.
+LaTeX:
+<<<
+\section*{Wykształcenie}
+Politechnika Bydgoska -- informatyka.
+>>>
+```
+
+Co się dzieje dalej:
+
+1. Dokumenty pojawiają się w formularzu w sekcji **„Dokumenty z LaTeX → PDF”**. Możesz tam poprawić nazwę, opis i treść.
+2. Po kliknięciu **„Zapisz osobę”** każdy dokument jest kompilowany XeLaTeX-em do PDF i zapisywany jako
+   `sources/<nr>_<nazwa>.pdf` (np. `12_karta_zawodnika_sezon_2023_2024.pdf`). Źródło trafia do `data/tex/`.
+3. Na stronie osoby dokument ma swój tytuł i opis, a w danych dla Google – typ `DigitalDocument` z opisem.
+4. Przy wygenerowanym dokumencie jest link **„edytuj LaTeX”** – wczytuje źródło z powrotem do formularza;
+   po zapisie PDF powstaje od nowa.
+
+Szablon dokumentu jest stały: dodaje tytuł, imię i nazwisko z miastem, opis, polskie znaki i stopkę
+„dokument informacyjny, nie jest dokumentem urzędowym”. Ty (albo AI) podajesz **tylko treść** – bez `\documentclass`,
+`\usepackage` i `\begin{document}`. Dostępne pakiety: `booktabs`, `tabularx`, `longtable`, `array`, `multirow`, `xcolor`.
+
+Parser odrzuci dokument, gdy:
+
+- brakuje nazwy, opisu albo bloku `<<<` … `>>>`,
+- treść zawiera polecenia odczytu plików lub preambuły (`\input`, `\include`, `\usepackage`, `\def`, `\write` …),
+- nawiasy `{ }` się nie domykają,
+- **nazwa wskazuje dokument urzędowy** (prawo jazdy, pozwolenie, zaświadczenie, świadectwo, dyplom, certyfikat,
+  wyniki badań, umowa, legitymacja…). Generator nie robi imitacji takich dokumentów – prawdziwy skan wgraj
+  zwykłym przyciskiem „Wyślij dokument” (z opisem).
+
+Błąd kompilacji LaTeX (np. źle zamknięta tabela) pokazuje się przy danym dokumencie; osoba i pozostałe dokumenty
+zapisują się normalnie.
+
+Wymagany jest XeLaTeX (MiKTeX albo TeX Live). Inną ścieżkę programu ustawisz zmienną środowiskową `XELATEX`.
+
 ### Pola
 
 | Pole | Inne nazwy, które też działają | Uwagi |
@@ -77,7 +132,8 @@ Wielkość liter i polskie znaki w nazwach pól nie mają znaczenia (`miasto:` =
 5. **Przeczytaj wynik przed zapisaniem.** AI potrafi coś dopowiedzieć – polecenie tego zabrania, ale sprawdź,
    czy wszystkie fakty są prawdziwe. Na stronie trafiają do Google.
 
-Polecenie każe AI używać tylko podanych faktów, pomijać brakujące pola i oddzielać osoby linią `---`.
+Polecenie każe AI używać tylko podanych faktów, pomijać brakujące pola, oddzielać osoby linią `---`
+i zaproponować 1–3 przydatne dokumenty informacyjne (z nazwą, opisem i treścią LaTeX w dozwolonym formacie).
 
 ## Dobre praktyki
 

@@ -20,7 +20,11 @@
     email: ["e-mail", "email", "mail"],
     attributes: ["atrybuty", "dane", "informacje"],
     links: ["linki", "profile", "media", "social media"],
-    faq: ["pytania", "faq", "pytania i odpowiedzi"]
+    faq: ["pytania", "faq", "pytania i odpowiedzi"],
+    documents: ["dokumenty", "zalaczniki"],
+    docTitle: ["dokument", "nazwa dokumentu"],
+    docDesc: ["opis dokumentu"],
+    docLatex: ["latex"]
   };
   var LOOKUP = {};
   Object.keys(KEYS).forEach(function (k) { KEYS[k].forEach(function (a) { LOOKUP[a] = k; }); });
@@ -69,9 +73,37 @@
     return (/^[sszśźż][^aąeęioóuy]/i.test(c) ? "ze " : "z ") + g;
   }
 
+  // --- dokumenty LaTeX ------------------------------------------------------
+
+  // nazwy dokumentów urzędowych – takich generator nie tworzy (byłyby podróbkami)
+  var OFFICIAL = /prawo jazdy|pozwoleni|zezwoleni|uprawnieni|dowod osobist|paszport|legitymacj|swiadectw|dyplom|zaswiadczeni|akt (urodzenia|malzenstwa|zgonu)|zwolnieni|recept|badani|orzeczeni|certyfikat|licencj|umow/;
+  // polecenia, które mogłyby czytać/zapisywać pliki albo psuć szablon
+  var FORBIDDEN = /\\(documentclass|usepackage|RequirePackage|input|include|includeonly|includegraphics|openin|openout|read|write|immediate|special|catcode|csname|endcsname|def|edef|gdef|xdef|let|futurelet|makeatletter|newread|newwrite|directlua|jobname|outer)(?![A-Za-z])/;
+
+  // zwraca listę błędów dokumentu { title, description, latex }
+  function checkDocument(d) {
+    var errors = [];
+    var t = norm(d.title);
+    if (!t) errors.push("brak nazwy dokumentu (linia „Dokument: …”)");
+    else if (OFFICIAL.test(t)) errors.push("„" + d.title + "” to dokument urzędowy – takich generator nie tworzy. Prawdziwy skan wgraj jako plik, albo zrób dokument informacyjny (np. CV, statystyki, lista osiągnięć)");
+    if (!String(d.description || "").trim()) errors.push("brak opisu (linia „Opis dokumentu: …”)");
+    var src = String(d.latex || "");
+    if (!src.trim()) errors.push("brak treści LaTeX – wpisz ją między liniami <<< i >>> pod „LaTeX:”");
+    var bad = FORBIDDEN.exec(src);
+    if (bad) errors.push("niedozwolone polecenie \\" + bad[1] + " – podaj tylko treść dokumentu, bez preambuły");
+    if (/\\(begin|end)\s*\{document\}/.test(src)) errors.push("bez \\begin{document} i \\end{document} – szablon dodaje je sam");
+    var depth = 0;
+    src.replace(/\\[{}]/g, "").split("").forEach(function (c) { if (c === "{") depth++; else if (c === "}") depth--; });
+    if (depth !== 0) errors.push("niezamknięte nawiasy { } w LaTeX");
+    return errors.map(function (e) { return (d.title ? d.title + ": " : "") + e; });
+  }
+
+  var latexBlocks = [];
+
   function parseOne(block) {
     var p = { attributes: {}, links: {}, faq: [] };
     var bio = [], section = null, q = null, guessed = false;
+    var docs = [], doc = null, errors = [];
 
     function line(raw) {
       var text = raw.trim();
@@ -81,11 +113,36 @@
       var m = /^https?:\/\//i.test(item) ? null : /^([^:]{1,40}):\s*(.*)$/.exec(item);
       var key = m && !bullet ? LOOKUP[norm(m[1])] : null;
 
+      // dokumenty: "Dokument: …", "Opis dokumentu: …", "LaTeX:" + blok <<< >>>
+      if (key === "documents") { section = "documents"; return; }
+      if (key === "docTitle") {
+        doc = { title: m[2].trim(), description: "", latex: "" };
+        docs.push(doc);
+        section = "documents";
+        return;
+      }
+      if (key === "docDesc" || key === "docLatex") {
+        if (!doc) { errors.push("„" + m[1].trim() + "” bez wcześniejszej linii „Dokument: …”"); return; }
+        if (key === "docDesc") doc.description = m[2].trim();
+        else {
+          var tok = /^@@LATEX(\d+)@@$/.exec(m[2].trim());
+          doc.latex = tok ? latexBlocks[Number(tok[1])] : "";
+        }
+        section = "documents";
+        return;
+      }
+
       // nagłówek pola, np. "Miejscowość: Toruń" albo "Linki:"
       if (key) {
         section = SECTIONS.indexOf(key) >= 0 ? key : null;
         if (section) { if (m[2].trim()) line(m[2]); return; }
         p[key] = m[2].trim();
+        return;
+      }
+
+      // dalszy ciąg opisu dokumentu w kolejnych liniach
+      if (section === "documents") {
+        if (doc && !doc.latex) doc.description += (doc.description ? " " : "") + item;
         return;
       }
 
@@ -117,17 +174,26 @@
     p.faq = p.faq.filter(function (f) { return f.q && f.a; });
     if (p.city && !p.cityFrom) { p.cityFrom = guessFrom(p.city); guessed = !!p.cityFrom; }
     if (p.cityFrom && !/^ze?\s/i.test(p.cityFrom)) p.cityFrom = "z " + p.cityFrom;
-    return { person: p, guessedFrom: guessed };
+    if (/^\s*(<<<|>>>)\s*$/m.test(block)) errors.push("blok LaTeX bez pary <<< / >>> – każdy musi zaczynać się linią <<< i kończyć linią >>>");
+    docs.forEach(function (d) { d.errors = checkDocument(d); errors = errors.concat(d.errors); });
+    return { person: p, guessedFrom: guessed, documents: docs, errors: errors };
   }
 
   // tekst z jedną lub wieloma osobami (oddzielonymi linią --- lub ===) -> [{ person, guessedFrom }]
   function parsujOsoby(text) {
-    return String(text || "").replace(/\r/g, "").replace(/ /g, " ")
+    // bloki LaTeX wyjmujemy przed dzieleniem na osoby, żeby ich treść (np. linia ---) nie psuła parsowania
+    latexBlocks = [];
+    text = String(text || "").replace(/\r/g, "").replace(/^latex:\s*<<<[ \t]*\n([\s\S]*?)\n>>>[ \t]*$/gim, function (all, body) {
+      latexBlocks.push(body);
+      return "LaTeX: @@LATEX" + (latexBlocks.length - 1) + "@@";
+    });
+    return text.replace(/ /g, " ")
       .split(/^\s*(?:-{3,}|={3,})\s*$/m)
       .map(parseOne)
       .filter(function (r) { return r.person.name; });
   }
 
   root.parsujOsoby = parsujOsoby;
-  if (typeof module !== "undefined") module.exports = { parsujOsoby: parsujOsoby, guessFrom: guessFrom };
+  root.sprawdzDokument = checkDocument;
+  if (typeof module !== "undefined") module.exports = { parsujOsoby: parsujOsoby, guessFrom: guessFrom, checkDocument: checkDocument };
 })(typeof window !== "undefined" ? window : this);
