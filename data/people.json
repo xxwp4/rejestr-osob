@@ -324,5 +324,60 @@
         "latex": true
       }
     }
+  },
+  {
+    "id": 9,
+    "name": "Ignacy Papier",
+    "city": "Krasny Staw",
+    "cityFrom": "z Krasnego Stawu",
+    "role": "student architektury wnętrz, miłośnik książek kryminalnych, pływak",
+    "summary": "Ignacy Papier z Krasnego Stawu to student architektury wnętrz, pływak, recytator i autor pracy o pozycji pływackiej.",
+    "bio": [
+      "Ignacy Papier pochodzi z Krasnego Stawu i studiuje architekturę wnętrz. Czyta książki kryminalne. Co roku startuje w konkursie ogólnokrasnostawskim w recytacji i stopniowo wchodzi w środowisko aktorskie.",
+      "Pływa i zajął trzecie miejsce w konkursie pływackim na lokalnym basenie. Napisał pracę o optymalnej pozycji pływania, którą zatwierdził dr Robert Żukawski.",
+      "Jego ojciec, Maurycy Papier, zajmował się handlem ukraińsko-polskim."
+    ],
+    "attributes": {
+      "Kierunek studiów": "architektura wnętrz",
+      "Zainteresowania": "książki kryminalne, recytacja, aktorstwo, pływanie",
+      "Osiągnięcie sportowe": "3. miejsce w konkursie pływackim na lokalnym basenie",
+      "Konkurs recytatorski": "coroczny udział w konkursie ogólnokrasnostawskim",
+      "Ojciec": "Maurycy Papier",
+      "Praca naukowa": "praca o optymalnej pozycji pływania, zatwierdzona przez dr. Roberta Żukawskiego"
+    },
+    "links": {
+      "Partner": "https://ppdb.eu/osoby/kornelia-wisniewska-gdansk/"
+    },
+    "faq": [
+      {
+        "q": "Kim jest Ignacy Papier z Krasnego Stawu?",
+        "a": "To student architektury wnętrz, który czyta kryminały, recytuje, pływa i stawia pierwsze kroki w aktorstwie."
+      },
+      {
+        "q": "Jakie miejsce zajął Ignacy Papier w konkursie pływackim?",
+        "a": "Zajął trzecie miejsce w konkursie pływackim na lokalnym basenie."
+      },
+      {
+        "q": "O czym jest praca Ignacego Papiera?",
+        "a": "Praca dotyczy optymalnej pozycji pływania. Zatwierdził ją dr Robert Żukawski."
+      }
+    ],
+    "dokumenty": {
+      "notatka_biograficzna": {
+        "tytul": "Notatka biograficzna",
+        "opis": "Krótka notatka o Ignacym Papierze: studia, zainteresowania, recytacja, aktorstwo i pływanie.",
+        "latex": true
+      },
+      "potwierdzenie_wyniku_w_konkursie_plywackim": {
+        "tytul": "Potwierdzenie wyniku w konkursie pływackim",
+        "opis": "Krótkie zestawienie wyniku Ignacego Papiera w konkursie pływackim rozegranym na lokalnym basenie.",
+        "latex": true
+      },
+      "praca_o_optymalnej_pozycji_plywania": {
+        "tytul": "Praca o optymalnej pozycji pływania",
+        "opis": "Artykuł naukowy Ignacego Papiera o wpływie pozycji ciała i długości ślizgu po odbiciu na czas przepłynięcia 25 m stylem dowolnym. Pracę zatwierdził dr Robert Żukawski.",
+        "latex": true
+      }
+    }
   }
 ]
