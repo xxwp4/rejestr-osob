@@ -61,7 +61,7 @@ i otwórz czat:
 <button type="button" class="czat" data-url="https://gemini.google.com/app">Gemini</button>
 <span class="hint">– w nowej karcie wciśnij Ctrl+V i Enter.</span>
 </p>
-<p><b>2. Odpowiedź AI</b> wklej tutaj i kliknij „Przetwórz tekst”:</p>
+<p><b>2. Odpowiedź AI</b> skopiuj przyciskiem „Kopiuj” w rogu bloku kodu (nie zaznaczaj tekstu myszką), wklej tutaj i kliknij „Przetwórz tekst”:</p>
 <textarea id="wklej" rows="8" placeholder="Imię i nazwisko: Jan Kowalski&#10;Miejscowość: Bydgoszcz&#10;Kim jest: student&#10;Atrybuty:&#10;- Rocznik: 2005&#10;Linki:&#10;- Instagram: https://instagram.com/..."></textarea>
 <p>
 <input type="file" id="wklejPlik" accept=".txt,text/plain">
@@ -97,31 +97,62 @@ Dokument: [nazwa dokumentu]
 Opis dokumentu: [1–2 zdania: co zawiera dokument]
 LaTeX:
 &lt;&lt;&lt;
-[sama treść dokumentu w LaTeX]
+\section*{…}
+Akapit tekstu…
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\toprule
+\textbf{Kolumna} &amp; \textbf{Kolumna} \\
+\midrule
+wartość &amp; wartość \\
+\bottomrule
+\end{tabularx}
 &gt;&gt;&gt;
+Dokument: [nazwa kolejnego dokumentu]
+…
 
-Zasady:
-- Używaj wyłącznie faktów z podanych informacji. Niczego nie dopisuj ani nie zgaduj.
+NAJWAŻNIEJSZE – forma odpowiedzi:
+- Całą odpowiedź umieść w JEDNYM bloku kodu (text na początku,  na końcu), bez żadnego tekstu przed nim
+  ani po nim. Wewnątrz bloku nie używaj Markdown (żadnych **, #, *). Dzięki temu znaki \\ oraz &gt;&gt;&gt; nie zginą.
+- KAŻDY blok LaTeX zaczyna się linią &lt;&lt;&lt; i kończy linią &gt;&gt;&gt; – każdy znacznik sam w osobnej linii. Nigdy nie pomijaj &gt;&gt;&gt;.
+- Każdy wiersz tabeli kończy się PODWÓJNYM ukośnikiem \\ (nie pojedynczym \).
+
+Zasady treści:
+- Używaj wyłącznie faktów z podanych informacji. Nie wymyślaj nowych faktów, liczb, dat, nazw ani osób.
 - Jeśli czegoś brakuje, pomiń całą linię lub sekcję.
 - Atrybuty: krótkie pary, np. Rocznik, Wzrost, Pozycja, Klub, Szkoła / uczelnia, Języki, Zainteresowania.
 - Linki: tylko pełne adresy URL, które występują w podanych informacjach.
 - Pytania: 2–3 pary, odpowiedzi 1–2 zdania.
-- Dokumenty: zaproponuj 1–5 dokumenty, które realnie przydałyby się tej osobie, zbudowane WYŁĄCZNIE z podanych faktów,
-- Niech kazdy z latexów zawiera realistyczną plus minus ilosc stron dla kazdego dokumentu
-  np. CV, karta zawodnika ze statystykami, lista osiągnięć, opis umiejętności, portfolio,raport,potwierdzenie itp.
-Postaraj sie zachować realistyczy styl i ton latex.
-- Każdy dokument: linia „Dokument: …”, linia „Opis dokumentu: …”, linia „LaTeX:”, potem linia 
-&lt;&lt;&lt;,
-  treść i linia &gt;&gt;&gt; (każdy znacznik w osobnej linii).
-- Treść LaTeX: tylko to, co jest między \begin{document} a \end{document} – BEZ \documentclass, \usepackage,
-  \begin{document}, \input, \include, \def. Tytułu i imienia nie powtarzaj (szablon dodaje je sam).
-  Dozwolone: \section*, \subsection*, itemize, enumerate, tabularx/tabular/longtable z \toprule \midrule \bottomrule,
-  \textbf, \textit, \textcolor, \\, \vspace. Znaki % $ &amp; # _ w zwykłym tekście poprzedzaj \.
-- Kilka osób oddziel linią zawierającą tylko: ---
-- Zwróć tylko gotowy tekst w tym formacie, bez komentarzy i bez formatowania Markdown.
 
-- jeżeli nie bedzie informacji o sobie w tej wiadmości po "Informacje:" napisz że jesteś gotowy na dane.
+Zasady dokumentów:
+- 2–5 dokumentów, każdy z JEDNYM wyraźnym tematem, np. CV, karta zawodnika ze statystykami, lista osiągnięć,
+  opis projektu (np. robota), portfolio, raport z sezonu, notatka biograficzna. Liczba dokumentów zależy od faktów:
+  zrób osobny dokument tylko dla tematu, o którym jest dość faktów. Mało faktów = 2 dokumenty.
+- Każdy dokument zawiera WYŁĄCZNIE fakty pasujące do jego tematu – tak, jak wyglądałby prawdziwy dokument tego typu.
+  Karta zawodnika: dane sportowe, dyscyplina, klub, wyniki; bez hobby, podróży i życia prywatnego.
+  Opis projektu: tylko ten projekt. CV: wykształcenie, umiejętności, doświadczenie, osiągnięcia; bez miejsca zamieszkania.
+  Ten sam fakt może pojawić się w 2 dokumentach tylko wtedy, gdy naturalnie należy do obu (np. wynik w CV i w karcie zawodnika).
+  Pełny przekrój życia (pasje, podróże, czas wolny) może mieć tylko notatka biograficzna – co najwyżej jedna.
+- Długość dopasuj do RODZAJU dokumentu – tak, jak wyglądałby prawdziwy dokument tego typu:
+  krótka notatka, karta wyników, potwierdzenie udziału: 100–350 słów (pół strony);
+  CV, lista osiągnięć, karta zawodnika ze statystykami: 250–700 słów (1–2 strony);
+  opis projektu, portfolio, raport z sezonu, sprawozdanie: 600–1500 słów (2–4 strony);
+  artykuł, referat, praca naukowa lub techniczna: 1500–4000 słów (4–10 stron), ze strukturą: streszczenie, wstęp,
+  metoda / budowa, wyniki, wnioski.
+  Dokumenty w jednym zestawie mogą (i zwykle powinny) mieć bardzo różne długości.
+- Długie dokumenty (projekt, raport, artykuł) rób tylko wtedy, gdy podane informacje dają na to materiał. Możesz w nich
+  objaśniać ogólną, powszechnie znaną wiedzę o temacie (np. zasady walk robotów minisumo, budowa układu sterowania),
 
+Nie lej wody: bez sekcji „Wstęp”, „Podsumowanie”, „Komentarz”, „Omówienie” i bez ocen typu „świadczy o zaangażowaniu”, „pokazuje wszechstronność”, „potwierdza talent”. Styl suchy i rzeczowy, jak w prawdziwych dokumentach.
+W dokumentach pomijaj dane wrażliwe (kolor skóry, pochodzenie etniczne, zdrowie, wyznanie, poglądy) i szczegóły miejsca zamieszkania – nie należą do CV ani kart wyników.
+Treść LaTeX: tylko to, co jest między \begin{document} a \end{document} – BEZ \documentclass, \usepackage,
+\begin{document}, \input, \include, \def, \includegraphics. Tytułu i imienia na górze nie powtarzaj (szablon dodaje je sam).
+Dozwolone: \section*, \subsection*, itemize, enumerate, tabularx/tabular/longtable z \toprule \midrule \bottomrule,
+\multirow, \textbf, \textit, \textcolor, \\, \vspace, \newpage. Znaki % $ &amp; # _ w zwykłym tekście poprzedzaj \ (np. 50\%).
+Wszystkie nawiasy { } muszą być domknięte.
+
+Kilka osób oddziel linią zawierającą tylko: ---
+Jeżeli po „Informacje:” poniżej nie ma żadnych informacji o osobie, odpisz tylko, że jesteś gotowy na dane.
+Informacje:
 Informacje:
 </pre>
 </details>

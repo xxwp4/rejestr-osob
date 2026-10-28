@@ -100,6 +100,53 @@
 
   var latexBlocks = [];
 
+  // naprawa LaTeX-a "zjedzonego" przez Markdown w czacie (np. odpowiedź skopiowana bez bloku kodu):
+  // "\\" na końcu wiersza tabeli zamienia się w "\", a "\%", "\_", "\&" tracą ukośnik
+  var TAB_ENV = /\\(begin|end)\s*\{(tabularx?|longtable|array)\}/g;
+  function naprawLatex(src) {
+    var depth = 0;
+    return src.split("\n").map(function (l) {
+      var inTable = depth > 0;
+      (l.match(TAB_ENV) || []).forEach(function (e) { depth += /begin/.test(e) ? 1 : -1; });
+      inTable = inTable || depth > 0;
+      l = l.replace(/(^|[^\\])\\[ \t]*$/, "$1\\\\");
+      l = l.replace(/(^|[^\\])([%#_])/g, "$1\\$2").replace(/(^|[^\\])([%#_])/g, "$1\\$2");
+      if (!inTable) l = l.replace(/(^|[^\\])&/g, "$1\\&").replace(/(^|[^\\])&/g, "$1\\&");
+      return l;
+    }).join("\n");
+  }
+
+  // linie kończące blok LaTeX, gdy brakuje zamykającego >>> (np. Markdown zjadł go jako cytat)
+  var KONIEC_LATEX = /^\s*((dokument|dokumenty|nazwa dokumentu|opis dokumentu|latex|imie i nazwisko)\s*:|<<<\s*$|-{3,}\s*$|={3,}\s*$)/;
+
+  // wyjmuje bloki LaTeX z tekstu i zastępuje je znacznikami @@LATEXn@@
+  function wyjmijLatex(text) {
+    var lines = text.split("\n"), out = [], i = 0;
+    while (i < lines.length) {
+      var m = /^\s*latex:\s*(<<<)?\s*$/i.exec(lines[i]);
+      if (!m) { out.push(lines[i++]); continue; }
+      var start = i + 1;
+      if (!m[1]) {
+        while (start < lines.length && !lines[start].trim()) start++;
+        if (start < lines.length && /^\s*<<<\s*$/.test(lines[start])) start++;
+        else if (!(start < lines.length && /^\s*\\/.test(lines[start]))) { out.push(lines[i++]); continue; }
+      }
+      // koniec: pierwsza linia >>>, a jeśli jej brak przed następnym dokumentem/osobą – linia przed nim
+      var end = start, closed = false;
+      while (end < lines.length) {
+        if (/^\s*>>>\s*$/.test(lines[end])) { closed = true; break; }
+        if (KONIEC_LATEX.test(norm(lines[end]))) break;
+        end++;
+      }
+      var body = lines.slice(start, end);
+      while (body.length && !body[body.length - 1].trim()) body.pop();
+      latexBlocks.push(naprawLatex(body.join("\n")));
+      out.push("LaTeX: @@LATEX" + (latexBlocks.length - 1) + "@@");
+      i = closed ? end + 1 : end;
+    }
+    return out.join("\n");
+  }
+
   function parseOne(block) {
     var p = { attributes: {}, links: {}, faq: [] };
     var bio = [], section = null, q = null, guessed = false;
@@ -183,10 +230,10 @@
   function parsujOsoby(text) {
     // bloki LaTeX wyjmujemy przed dzieleniem na osoby, żeby ich treść (np. linia ---) nie psuła parsowania
     latexBlocks = [];
-    text = String(text || "").replace(/\r/g, "").replace(/^latex:\s*<<<[ \t]*\n([\s\S]*?)\n>>>[ \t]*$/gim, function (all, body) {
-      latexBlocks.push(body);
-      return "LaTeX: @@LATEX" + (latexBlocks.length - 1) + "@@";
-    });
+    text = String(text || "").replace(/\r/g, "").replace(/^\s*```.*$/gm, "");
+    text = wyjmijLatex(text)
+      // resztki Markdown z czatu: nagłówki "### …" i pogrubienia "**…**"
+      .replace(/^\s*#{1,6}\s+/gm, "").replace(/\*\*/g, "");
     return text.replace(/ /g, " ")
       .split(/^\s*(?:-{3,}|={3,})\s*$/m)
       .map(parseOne)

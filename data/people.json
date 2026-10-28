@@ -267,5 +267,62 @@
         "latex": true
       }
     }
+  },
+  {
+    "id": 8,
+    "name": "Paweł Cicheńki",
+    "city": "Kępa Bazarowa",
+    "cityFrom": "z Kępy Bazarowej",
+    "role": "lekkoatleta i student informatyki",
+    "summary": "Paweł Cicheńki z Kępy Bazarowej to lekkoatleta, student informatyki, podróżnik, elektryk i konstruktor robota minisumo.",
+    "bio": [
+      "Paweł Cicheńki pochodzi z Kępy Bazarowej i jest czarnoskórym atletą. Zajął 3. miejsce w mistrzostwach Małopolski w 2023 roku, a w czasie pandemii covid wygrał 5. miejsce w turnieju lekkoatletycznym. Lekkoatletykę kocha, a obecnie wyjechał studiować informatykę w Wielkopolsce.",
+      "Dużo podróżuje po świecie. Ostatnio odwiedził Kenię oraz Berlin, gdzie spotkał się z licznymi CEO. Jest dobrym elektrykiem i wyspawał zaawansowanego robota minisumo.",
+      "W wolnym czasie poluje na ryby, a w lokalnym konkursie wędkarskim zajął 12. miejsce. Kocha kajakować i mieszka w mieszkaniu nad jeziorem."
+    ],
+    "attributes": {
+      "Dyscyplina": "lekkoatletyka",
+      "Kierunek studiów": "informatyka",
+      "Region studiów": "Wielkopolska",
+      "Umiejętności": "elektryka, spawanie, budowa robotów minisumo",
+      "Zainteresowania": "lekkoatletyka, podróże, wędkarstwo, kajakarstwo",
+      "Odwiedzone miejsca": "Kenia, Berlin"
+    },
+    "faq": [
+      {
+        "q": "Kim jest Paweł Cicheńki z Kępy Bazarowej?",
+        "a": "To lekkoatleta i student informatyki w Wielkopolsce. Podróżuje po świecie, jest dobrym elektrykiem i zbudował zaawansowanego robota minisumo."
+      },
+      {
+        "q": "Jakie osiągnięcia sportowe ma Paweł Cicheńki z Kępy Bazarowej?",
+        "a": "Zajął 3. miejsce w mistrzostwach Małopolski w 2023 roku oraz 5. miejsce w turnieju lekkoatletycznym w czasie pandemii covid. Zajął także 12. miejsce w lokalnym konkursie wędkarskim."
+      },
+      {
+        "q": "Jakie są pozasportowe zainteresowania i umiejętności Pawła Cicheńkiego z Kępy Bazarowej?",
+        "a": "Kocha kajakować, poluje na ryby i podróżuje, odwiedził ostatnio Kenię i Berlin. Jest dobrym elektrykiem i wyspawał robota minisumo."
+      }
+    ],
+    "dokumenty": {
+      "karta_zawodnika": {
+        "tytul": "Karta zawodnika",
+        "opis": "Karta sportowa Pawła Cicheńkiego z wynikami w lekkoatletyce i wędkarstwie wraz z opisem jego podejścia do sportu. Zawiera zestawienia wyników oraz krótki komentarz do każdego startu.",
+        "latex": true
+      },
+      "lista_osiagniec": {
+        "tytul": "Lista osiągnięć",
+        "opis": "Zestawienie osiągnięć sportowych, technicznych i podróżniczych Pawła Cicheńkiego z krótkim omówieniem każdego obszaru. Dokument porządkuje wszystkie znane sukcesy w jednym miejscu.",
+        "latex": true
+      },
+      "opis_umiejetnosci_i_zainteresowan": {
+        "tytul": "Opis umiejętności i zainteresowań",
+        "opis": "Opis kompetencji technicznych, sportowych i pozazawodowych Pawła Cicheńkiego wraz z zestawieniem jego zainteresowań. Dokument przedstawia, jak poszczególne obszary jego życia się uzupełniają.",
+        "latex": true
+      },
+      "notatka_biograficzna": {
+        "tytul": "Notatka biograficzna",
+        "opis": "Krótka biografia Pawła Cicheńkiego opisująca jego pochodzenie, drogę sportową, edukację i zainteresowania. Dokument ma formę przeglądowego życiorysu w układzie tematycznym.",
+        "latex": true
+      }
+    }
   }
 ]
