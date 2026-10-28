@@ -1,5 +1,5 @@
 // Lokalny edytor osób: http://localhost:3000/edytor/
-// Uruchom: node tools/edytor/server.js   (albo: npm run edytor)
+// Uruchom: edytor.bat (dwuklik), node tools/edytor/server.js [--otworz] albo npm run edytor
 // Nasłuchuje tylko na 127.0.0.1 – działa wyłącznie na tym komputerze i nie jest częścią strony.
 const http = require("http");
 const fs = require("fs");
@@ -15,6 +15,8 @@ const TRASH = path.join(ROOT, ".kosz");
 const PORT = Number(process.env.PORT) || 3000;
 const MAX_UPLOAD = 50 * 1024 * 1024;
 const XELATEX = process.env.XELATEX || "xelatex";
+const EDYTOR_URL = `http://localhost:${PORT}/edytor/`;
+const OTWORZ = process.argv.includes("--otworz");
 
 // dwa zbiory: testowy (losowe osoby, noindex, nie trafia na stronę) i prawdziwy (publikowany)
 const ZBIORY = {
@@ -328,6 +330,13 @@ async function api(req, res, url) {
   send(res, 404, { error: "Nie ma takiej operacji" });
 }
 
+// --otworz: po starcie otwiera edytor w domyślnej przeglądarce (używa tego edytor.bat)
+function otworzPrzegladarke() {
+  const [cmd, args] = process.platform === "win32" ? ["cmd", ["/c", "start", "", EDYTOR_URL]]
+    : process.platform === "darwin" ? ["open", [EDYTOR_URL]] : ["xdg-open", [EDYTOR_URL]];
+  execFile(cmd, args, () => {});
+}
+
 http
   .createServer(async (req, res) => {
     // blokada dla innych stron otwartych w przeglądarce (CSRF / DNS rebinding)
@@ -354,4 +363,16 @@ http
       send(res, 400, { error: e.message });
     }
   })
-  .listen(PORT, "127.0.0.1", () => console.log(`Edytor: http://localhost:${PORT}/edytor/   (Ctrl+C kończy)`));
+  .on("error", (e) => {
+    // edytor już działa (np. drugie uruchomienie edytor.bat) – wystarczy otworzyć przeglądarkę
+    if (e.code === "EADDRINUSE" && OTWORZ) {
+      console.log(`Edytor już działa: ${EDYTOR_URL}`);
+      otworzPrzegladarke();
+      return;
+    }
+    throw e;
+  })
+  .listen(PORT, "127.0.0.1", () => {
+    console.log(`Edytor: ${EDYTOR_URL}   (Ctrl+C kończy)`);
+    if (OTWORZ) otworzPrzegladarke();
+  });

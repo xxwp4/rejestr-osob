@@ -4,7 +4,7 @@
   "description": "Archiwum – rejestr i spis osób (statyczna strona na GitHub Pages)",
   "scripts": {
     "build": "node build.js",
-    "edytor": "node tools/edytor/server.js",
+    "edytor": "node tools/edytor/server.js --otworz",
     "podglad": "node build.js --preview",
     "test-strona": "node gen-test-data.js && node build.js --test",
     "wyslij": "node tools/wyslij.js"

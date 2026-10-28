@@ -13,16 +13,20 @@ Statyczna strona generowana z plików JSON i hostowana na GitHub Pages z własn�
 
 ## Dodanie osoby – edytor
 
+Na Windowsie: dwuklik w **`edytor.bat`** – uruchamia serwer i sam otwiera edytor w przeglądarce
+(jeśli edytor już działa, tylko otwiera kartę). Albo z terminala:
+
 ```bash
 npm run edytor
 ```
 
-Otwórz http://localhost:3000/edytor/. W edytorze:
+Adres: http://localhost:3000/edytor/. W edytorze:
 
 - dodajesz, poprawiasz i usuwasz osoby (zapis prosto do `data/people.json`),
 - wgrywasz zdjęcie i dokumenty – same dostają prefiks numeru osoby (`12_nazwa.pdf`),
 - widzisz, jak wynik wyświetli Google, i listę kontrolną jakości profilu,
 - „Zbuduj podgląd” tworzy `dist-preview/`, który oglądasz pod http://localhost:3000/,
+- „Skopiuj Prompt” kopiuje polecenie dla AI (razem z wpisanymi nad nim informacjami o osobie), a przyciski Claude / ChatGPT / Gemini dodatkowo otwierają nowy czat – wystarczy Ctrl+V i Enter,
 - „Szybkie dodawanie – wklej tekst” zamienia wklejony tekst (albo plik .txt) na osoby – opis formatu i polecenie dla AI: [tools/edytor/INSTRUKCJA.md](tools/edytor/INSTRUKCJA.md).
 
 Edytor nasłuchuje tylko na tym komputerze, a GitHub publikuje wyłącznie `dist/`, więc ani edytor, ani podgląd nie trafiają do internetu. Usunięte pliki lądują w `.kosz/` (nie w gicie).

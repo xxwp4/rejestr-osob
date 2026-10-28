@@ -51,6 +51,17 @@ textarea.tex { font-family: "Courier New", monospace; font-size: 13px; }
 <legend>Szybkie dodawanie – wklej tekst</legend>
 <p class="hint">Wklej dane jednej lub kilku osób (kolejne oddziel linią <code>---</code>) albo wczytaj plik .txt.
 Format: <a href="/edytor/szablon.txt" target="_blank">szablon.txt</a>.</p>
+<p><b>1. Prompt dla AI</b> – opcjonalnie wklej surowe informacje o osobie (CV, bio, statystyki), dopiszą się pod poleceniem:</p>
+<textarea id="promptInfo" rows="3" placeholder="np. tekst ze strony ze statystykami, bio z Instagrama, notatka…"></textarea>
+<p>
+<button type="button" id="skopiujPrompt"><b>Skopiuj Prompt</b></button>
+i otwórz czat:
+<button type="button" class="czat" data-url="https://claude.ai/new">Claude</button>
+<button type="button" class="czat" data-url="https://chatgpt.com/">ChatGPT</button>
+<button type="button" class="czat" data-url="https://gemini.google.com/app">Gemini</button>
+<span class="hint">– w nowej karcie wciśnij Ctrl+V i Enter.</span>
+</p>
+<p><b>2. Odpowiedź AI</b> wklej tutaj i kliknij „Przetwórz tekst”:</p>
 <textarea id="wklej" rows="8" placeholder="Imię i nazwisko: Jan Kowalski&#10;Miejscowość: Bydgoszcz&#10;Kim jest: student&#10;Atrybuty:&#10;- Rocznik: 2005&#10;Linki:&#10;- Instagram: https://instagram.com/..."></textarea>
 <p>
 <input type="file" id="wklejPlik" accept=".txt,text/plain">
@@ -773,6 +784,31 @@ $("#wklejPlik").onchange = function () {
   this.value = "";
 };
 $("#wklejWyczysc").onclick = function () { $("#wklej").value = ""; $("#wynik").innerHTML = ""; };
+// pełny prompt: polecenie + (opcjonalnie) informacje o osobie wpisane nad przyciskiem
+function pelnyPrompt() {
+  var info = $("#promptInfo").value.trim();
+  return $("#prompt").textContent + (info ? info + "\n" : "");
+}
+function skopiujPrompt(btn, label) {
+  return navigator.clipboard.writeText(pelnyPrompt()).then(function () {
+    btn.textContent = "Skopiowano!";
+    setTimeout(function () { btn.textContent = label; }, 1500);
+    return true;
+  }).catch(function () { msg("Nie udało się skopiować – zaznacz tekst polecenia ręcznie.", false); return false; });
+}
+$("#skopiujPrompt").onclick = function () { skopiujPrompt(this, "Skopiuj Prompt"); };
+document.querySelectorAll("button.czat").forEach(function (b) {
+  b.onclick = function () {
+    // karta otwierana od razu (w obsłudze kliknięcia), żeby przeglądarka nie zablokowała okna
+    var okno = window.open(b.dataset.url, "_blank");
+    if (okno) okno.opener = null;
+    skopiujPrompt(b, b.textContent).then(function (ok) {
+      if (!ok) return;
+      if (okno) msg("Prompt skopiowany – w otwartym czacie wciśnij Ctrl+V i Enter. Odpowiedź wklej w pole „Odpowiedź AI”.", true);
+      else msg("Prompt skopiowany, ale przeglądarka zablokowała nową kartę – otwórz " + b.dataset.url + " ręcznie.", false);
+    });
+  };
+});
 $("#kopiujPrompt").onclick = function () {
   var btn = this;
   navigator.clipboard.writeText($("#prompt").textContent).then(function () {
