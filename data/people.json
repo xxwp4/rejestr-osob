@@ -423,5 +423,51 @@
         "latex": true
       }
     }
+  },
+  {
+    "id": 11,
+    "name": "Oli Gołąb",
+    "city": "Bydgoszcz",
+    "cityFrom": "z Bydgoszczy",
+    "role": "student technologii oświetlenia, autor publikacji o technologiach żarówek",
+    "summary": "Oli Gołąb z Bydgoszczy studiuje technologie oświetlenia i jest autorem publikacji o technologiach żarówek.",
+    "bio": [
+      "Oli Gołąb z Bydgoszczy studiuje technologie oświetlenia na uniwersytecie lokalnym. Jest autorem dwóch prac dotyczących technologii żarówek. Jedna z nich została opublikowana, a druga jest w trakcie publikacji.",
+      "W wolnym czasie wymienia żarówki, ponieważ zna się na ich technologiach. Ma doświadczenie zawodnicze w sportach walki, jednak zrezygnował z występów w MMA."
+    ],
+    "attributes": {
+      "Wiek": "24 lata",
+      "Wzrost": "1,63 m",
+      "Waga": "70 kg",
+      "Kierunek": "technologie oświetlenia",
+      "Zainteresowania": "technologie żarówek, wymiana żarówek",
+      "Sport": "były zawodnik MMA"
+    },
+    "faq": [
+      {
+        "q": "Kim jest Oli Gołąb z Bydgoszczy?",
+        "a": "Studentem technologii oświetlenia, który napisał dwie prace o technologiach żarówek."
+      },
+      {
+        "q": "Nad czym pracuje naukowo?",
+        "a": "Nad technologiami żarówek. Jedna z jego prac została już opublikowana, a druga jest w trakcie publikacji."
+      },
+      {
+        "q": "Czym zajmuje się w wolnym czasie?",
+        "a": "Wymienia żarówki, bo zna się na ich technologiach."
+      }
+    ],
+    "dokumenty": {
+      "dorobek_naukowy": {
+        "tytul": "Dorobek naukowy",
+        "opis": "Zestawienie publikacji Oli Gołąba z zakresu technologii żarówek, ze wskazaniem statusu każdej z nich.",
+        "latex": true
+      },
+      "przeglad_technologii_zrodel_swiatla": {
+        "tytul": "Przegląd technologii źródeł światła",
+        "opis": "Ogólny przegląd historycznych i współczesnych technologii żarówek, z porównaniem ich parametrów. Tekst nie opisuje wyników wspomnianych wyżej prac autora.",
+        "latex": true
+      }
+    }
   }
 ]
