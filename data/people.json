@@ -379,5 +379,49 @@
         "latex": true
       }
     }
+  },
+  {
+    "id": 10,
+    "name": "Tomek Gała",
+    "city": "Poznań",
+    "cityFrom": "z Poznania",
+    "role": "student teleinformatyki, zainteresowany hokejem, meblami z drewna i motoryzacją",
+    "summary": "Tomek Gała z Poznania to student teleinformatyki, który interesuje się hokejem, meblami i używanymi samochodami.",
+    "bio": [
+      "Tomek Gała z Poznania studiuje teleinformatykę. Interesuje się hokejem, a razem ze swoją drużyną zajął 4. miejsce w turnieju.",
+      "Interesuje się produkcją drewnianych mebli, które importuje z Włoch. Kolekcjonuje używane samochody i je naprawia, a warsztat ma w Rzeszowie.",
+      "Po wybuchu wojny na Ukrainie pojechał pod granicę i pomagał Ukraińcom dostać się do Polski."
+    ],
+    "attributes": {
+      "Kierunek studiów": "teleinformatyka",
+      "Zainteresowania": "hokej, drewniane meble, używane samochody i ich naprawa",
+      "Osiągnięcie sportowe": "4. miejsce w turnieju hokejowym z drużyną"
+    },
+    "faq": [
+      {
+        "q": "Kim jest Tomek Gała z Poznania?",
+        "a": "Studentem teleinformatyki z Poznania, zainteresowanym hokejem, meblami z drewna i używanymi samochodami."
+      },
+      {
+        "q": "Jakie ma osiągnięcie sportowe?",
+        "a": "Razem ze swoją drużyną zajął 4. miejsce w turnieju hokejowym."
+      },
+      {
+        "q": "Czym zajmuje się poza studiami?",
+        "a": "Interesuje się produkcją drewnianych mebli importowanych z Włoch oraz zbieraniem i naprawą używanych samochodów."
+      }
+    ],
+    "dokumenty": {
+      "notatka_biograficzna": {
+        "tytul": "Notatka biograficzna",
+        "opis": "Krótka notatka o Tomku Gałe z Poznania, obejmująca studia, zainteresowania, działalność gospodarczą i pomoc uchodźcom z Ukrainy.",
+        "latex": true
+      },
+      "karta_wynikow_hokejowych": {
+        "tytul": "Karta wyników hokejowych",
+        "opis": "Zestawienie wyniku drużyny w turnieju hokejowym, w którym uczestniczył Tomek Gała.",
+        "latex": true
+      }
+    }
   }
 ]
